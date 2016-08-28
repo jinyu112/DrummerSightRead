@@ -172,24 +172,44 @@ public class MidiFile
         mType = mTrackCount > 1 ? 1 : 0;
     }
 
-    public void writeToFile(File outFile) throws FileNotFoundException, IOException
+//    public void writeToFile(File outFile) throws FileNotFoundException, IOException
+//    {
+//        FileOutputStream fout = new FileOutputStream(outFile);
+//
+//        fout.write(IDENTIFIER);
+//        fout.write(MidiUtil.intToBytes(6, 4));
+//        fout.write(MidiUtil.intToBytes(mType, 2));
+//        fout.write(MidiUtil.intToBytes(mTrackCount, 2));
+//        fout.write(MidiUtil.intToBytes(mResolution, 2));
+//
+//        for(MidiTrack T : mTracks)
+//        {
+//            T.writeToFile(fout);
+//        }
+//
+//        fout.flush();
+//        fout.close();
+//    }
+
+    //jin edited
+public void writeToFile(FileOutputStream fout) throws FileNotFoundException, IOException
+{
+
+
+    fout.write(IDENTIFIER);
+    fout.write(MidiUtil.intToBytes(6, 4));
+    fout.write(MidiUtil.intToBytes(mType, 2));
+    fout.write(MidiUtil.intToBytes(mTrackCount, 2));
+    fout.write(MidiUtil.intToBytes(mResolution, 2));
+
+    for(MidiTrack T : mTracks)
     {
-        FileOutputStream fout = new FileOutputStream(outFile);
-
-        fout.write(IDENTIFIER);
-        fout.write(MidiUtil.intToBytes(6, 4));
-        fout.write(MidiUtil.intToBytes(mType, 2));
-        fout.write(MidiUtil.intToBytes(mTrackCount, 2));
-        fout.write(MidiUtil.intToBytes(mResolution, 2));
-
-        for(MidiTrack T : mTracks)
-        {
-            T.writeToFile(fout);
-        }
-
-        fout.flush();
-        fout.close();
+        T.writeToFile(fout);
     }
+
+    fout.flush();
+    fout.close();
+}
 
     private void initFromBuffer(byte[] buffer)
     {

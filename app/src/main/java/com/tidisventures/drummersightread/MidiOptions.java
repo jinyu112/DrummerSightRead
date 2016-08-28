@@ -92,7 +92,7 @@ public class MidiOptions implements Serializable {
 
         tempo = 1000000;
         pauseTime = 0;
-        lastMeasure = 1;
+        lastMeasure = 100;
         playMeasuresInLoop = false;
         playMeasuresInLoopStart = 0;
         playMeasuresInLoopEnd = lastMeasure;

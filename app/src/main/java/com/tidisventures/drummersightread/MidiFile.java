@@ -1,5 +1,7 @@
 package com.tidisventures.drummersightread;
 
+import android.util.Log;
+
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.ArrayList;
@@ -428,30 +430,30 @@ public class MidiFile {
         parse(rawdata);
     }
 
-    //Customer jin constructor
-//    private String filename;          /** The Midi file name */
-//    private ArrayList<ArrayList<MidiEvent>> allevents; /** The raw MidiEvents, one list per track */
-//    private ArrayList<MidiTrack> tracks ;  /** The tracks of the midifile that have notes */
-//    private short trackmode;         /** 0 (single track), 1 (simultaneous tracks) 2 (independent tracks) */
-//    private TimeSignature timesig;    /** The time signature */
-//    private int quarternote;          /** The number of pulses per quarter note */
-//    private int totalpulses;          /** The total length of the song, in pulses */
-//    private boolean trackPerChannel;  /** True if we've split each channel into a track */
-
-    public MidiFile(String file_name, ArrayList<ArrayList<MidiEvent>> all_events,
-                    ArrayList<MidiTrack> tra_cks, short track_mode,
-                    TimeSignature time_sig, int quart_note, int total_pulses,
-                    boolean track_per_channel) {
-        this.filename = file_name;
-        this.allevents = all_events;
-        this.tracks = tra_cks;
-        this.trackmode = track_mode;
-        this.timesig = time_sig;
-        this.quarternote = quart_note;
-        this.totalpulses = total_pulses;
-        this.trackPerChannel = track_per_channel;
-
-    }
+//    //Customer jin constructor
+////    private String filename;          /** The Midi file name */
+////    private ArrayList<ArrayList<MidiEvent>> allevents; /** The raw MidiEvents, one list per track */
+////    private ArrayList<MidiTrack> tracks ;  /** The tracks of the midifile that have notes */
+////    private short trackmode;         /** 0 (single track), 1 (simultaneous tracks) 2 (independent tracks) */
+////    private TimeSignature timesig;    /** The time signature */
+////    private int quarternote;          /** The number of pulses per quarter note */
+////    private int totalpulses;          /** The total length of the song, in pulses */
+////    private boolean trackPerChannel;  /** True if we've split each channel into a track */
+//
+//    public MidiFile(String file_name, ArrayList<ArrayList<MidiEvent>> all_events,
+//                    ArrayList<MidiTrack> tra_cks, short track_mode,
+//                    TimeSignature time_sig, int quart_note, int total_pulses,
+//                    boolean track_per_channel) {
+//        this.filename = file_name;
+//        this.allevents = all_events;
+//        this.tracks = tra_cks;
+//        this.trackmode = track_mode;
+//        this.timesig = time_sig;
+//        this.quarternote = quart_note;
+//        this.totalpulses = total_pulses;
+//        this.trackPerChannel = track_per_channel;
+//
+//    }
 
 
 
@@ -490,6 +492,16 @@ public class MidiFile {
                 tracks.add(track);
             }
         }
+
+//        //debug track 0
+//        for (int ii=0; ii<tracks.get(0).getNotes().size();ii++) {
+//            Log.d("Drum15", "Note: " + ii + " ," + tracks.get(0).getNotes().get(ii).getNumber());
+//            Log.d("Drum15","Note duration: " + ii + " ," + tracks.get(0).getNotes().get(ii).getDuration());
+//            Log.d("Drum15","Note start time: " + ii + " ," + tracks.get(0).getNotes().get(ii).getStartTime());
+//            Log.d("Drum15","--------------------------------------");
+//        }
+
+
 
         /* Get the length of the song in pulses */
         for (MidiTrack track : tracks) {
@@ -537,6 +549,14 @@ public class MidiFile {
             numer = 4; denom = 4;
         }
         timesig = new TimeSignature(numer, denom, quarternote, (int)tempo);
+
+        Log.d("Drum15","trackmode: " + trackmode);
+        Log.d("Drum15","trackperchannel: " + trackPerChannel);
+        Log.d("Drum15","time sig den: " + timesig.getDenominator());
+        Log.d("Drum15","time sig num: " + timesig.getNumerator());
+        Log.d("Drum15","time sig measure: " + timesig.getMeasure());
+        Log.d("Drum15","time sig quarter: " + timesig.getQuarter());
+        Log.d("Drum15","time sig tempo: " + timesig.getTempo());
     }
 
     /** Parse a single Midi track into a list of MidiEvents.
@@ -556,11 +576,14 @@ public class MidiFile {
         int trackend = tracklen + file.GetOffset();
 
         byte eventflag = 0;
-
+        int njin=0;
         while (file.GetOffset() < trackend) {
 
             // If the midi file is truncated here, we can still recover.
             // Just return what we've parsed so far.
+
+
+
 
             int startoffset, deltatime;
             byte peekevent;
@@ -677,6 +700,34 @@ public class MidiFile {
                 throw new MidiFileException("Unknown event " + mevent.EventFlag,
                         file.GetOffset()-1);
             }
+//                        try{
+//                Thread.sleep(500);}
+//            catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+            if (njin<500) {
+//                Log.d("Drum14", "Event Number: " + njin);
+//                Log.d("Drum14", "Event del time: " + mevent.DeltaTime);
+//                Log.d("Drum14", "Event start time: " + mevent.StartTime);
+//                Log.d("Drum14", "Event flag: " + mevent.EventFlag);
+//                Log.d("Drum14", "Event channel: " + mevent.Channel);
+//                Log.d("Drum14", "Event note number: " + mevent.Notenumber);
+//                Log.d("Drum14", "Event note vel: " + mevent.Velocity);
+//                Log.d("Drum14", "Event key pressure: " + mevent.KeyPressure);
+//                Log.d("Drum14","Event ctrl number: " + mevent.ControlNum);
+//                Log.d("Drum14","Event ctrl value: " + mevent.ControlValue);
+//                Log.d("Drum14","Event instrument: " + mevent.Instrument);
+//                Log.d("Drum14","Event channel pressure: " + mevent.ChanPressure);
+//                Log.d("Drum14","Event pitch bend: " + mevent.PitchBend);
+//                Log.d("Drum14","Event meta length: " + mevent.Metalength);
+//                Log.d("Drum14","Event value: " + mevent.Value);
+//                Log.d("Drum14","Event meta event: " + mevent.Metaevent);
+//                Log.d("Drum14","Event numerator: " + mevent.Numerator);
+//                Log.d("Drum14","Event denominator: " + mevent.Denominator);
+//                Log.d("Drum14","Event tempo: " + mevent.Tempo);
+//                Log.d("Drum14","--------------------------------------------");
+            }
+            njin++;
         }
 
         return result;
@@ -1167,6 +1218,7 @@ public class MidiFile {
 
         /* To make the sheet music look nicer, we round the start times
          * so that notes close together appear as a single chord.  We
+         * so that notes close togeher appear as a single chord.  We
          * also extend the note durations, so that we have longer notes
          * and fewer rest symbols.
          */

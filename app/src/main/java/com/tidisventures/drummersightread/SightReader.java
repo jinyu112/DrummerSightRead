@@ -373,14 +373,14 @@ public class SightReader extends Activity {
 
         // 4. Write the MIDI data to a file
         File output = new File("exampleout.mid");
-        try
-        {
-            midi.writeToFile(output);
-        }
-        catch(IOException e)
-        {
-            System.err.println(e);
-        }
+//        try
+//        {
+//            midi.writeToFile();
+//        }
+//        catch(IOException e)
+//        {
+//            System.err.println(e);
+//        }
 
         return output;
     }

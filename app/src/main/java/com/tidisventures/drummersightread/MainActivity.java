@@ -5,12 +5,24 @@ import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
+import com.leff.midi.event.NoteOff;
+import com.leff.midi.event.NoteOn;
+import com.leff.midi.event.meta.Tempo;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.util.ArrayList;
+import java.util.List;
 import java.util.zip.CRC32;
 
 
@@ -27,6 +39,20 @@ public class MainActivity extends ActionBarActivity {
     private MidiFile midifile;   /* The midi file to play */
     private MidiOptions options; /* The options for sheet music and sound */
     private long midiCRC;      /* CRC of the midi bytes */
+
+
+    //added by jin 8/26/16 from midifile
+    /* The list of Midi Events */
+    public static final byte EventNoteOff         = (byte)0x80;
+    public static final byte EventNoteOn          = (byte)0x90;
+    public static final byte EventKeyPressure     = (byte)0xA0;
+    public static final byte EventControlChange   = (byte)0xB0;
+    public static final byte EventProgramChange   = (byte)0xC0;
+    public static final byte EventChannelPressure = (byte)0xD0;
+    public static final byte EventPitchBend       = (byte)0xE0;
+    public static final byte SysexEvent1          = (byte)0xF0;
+    public static final byte SysexEvent2          = (byte)0xF7;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +78,8 @@ public class MainActivity extends ActionBarActivity {
 //
 //        // Initialize the settings (MidiOptions).
 //        // If previous settings have been saved, used those
-        options = new MidiOptions();
+        midifile = genMidiFile();
+        options = new MidiOptions(midifile);
 //        CRC32 crc = new CRC32();
 //        crc.update(data);
 //        midiCRC = crc.getValue();
@@ -117,7 +144,12 @@ public class MainActivity extends ActionBarActivity {
         layout.addView(sheet);
         //piano.SetMidiFile(midifile, options, player);
         //piano.SetShadeColors(options.shade1Color, options.shade2Color);
+
+//        midifile = new MidiFile("adsf",genEvents(sheet.getNotes()),sheet.getTracks(),(short) 0,sheet.getTime(),96,96*4*12,false);
+
+        //player.SetMidiFile(midifile, options, sheet);
         player.SetMidiFile(midifile, options, sheet);
+
         layout.requestLayout();
         sheet.callOnDraw();
     }
@@ -143,5 +175,110 @@ public class MainActivity extends ActionBarActivity {
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    public MidiFile genMidiFile() {
+        com.leff.midi.MidiTrack tempoTrack = new com.leff.midi.MidiTrack();
+        com.leff.midi.MidiTrack noteTrack = new com.leff.midi.MidiTrack();
+
+// 2. Add events to the tracks
+// Track 0 is the tempo map
+        com.leff.midi.event.meta.TimeSignature ts = new com.leff.midi.event.meta.TimeSignature();
+        ts.setTimeSignature(4, 4, 384,
+                128);
+
+        Tempo tempo = new Tempo();
+        tempo.setBpm(60);
+
+        //com.leff.midi.event.Controller controllerEvent = new com.leff.midi.event.Controller(0,0,64,127);
+        //tempoTrack.insertEvent(controllerEvent);
+        tempoTrack.insertEvent(tempo);
+        tempoTrack.insertEvent(ts);
+
+// Track 1 will have some notes in it
+        final int NOTE_COUNT = 12;
+
+        for(int i = 0; i < NOTE_COUNT; i++)
+        {
+            int channel = 0, pitch = 60, velocity = 100;
+            NoteOn on = new NoteOn(i * 96, channel, pitch, velocity);
+            NoteOff off = new NoteOff(i * 96 + 96/2, channel, pitch, 0);
+
+            noteTrack.insertEvent(on);
+            noteTrack.insertEvent(off);
+
+            // There is also a utility function for notes that you should use
+            // instead of the above.
+            noteTrack.insertNote(channel, pitch , velocity, i * 96, 96);
+        }
+
+// 3. Create a MidiFile with the tracks we created
+        ArrayList<com.leff.midi.MidiTrack> tracks = new ArrayList<com.leff.midi.MidiTrack>();
+        tracks.add(tempoTrack);
+        tracks.add(noteTrack);
+
+        com.leff.midi.MidiFile midi = new com.leff.midi.MidiFile(96, tracks);
+
+// 4. Write the MIDI data to a file
+        try
+        {
+            FileOutputStream fos = new FileOutputStream(new File(getExternalFilesDir(null), "exampleout.mid"));
+            midi.writeToFile(fos);
+
+        }
+        catch(IOException e)
+        {
+            System.err.println(e);
+        }
+
+
+        //convert exampleout.mid to regular midi class obj
+        byte[] data = returnData("exampleout.mid");
+        String title = "asdf";
+        MidiFile tempmidifile = new MidiFile(data,title);
+
+        return tempmidifile;
+    }
+
+
+    private byte[] returnData(String name) {
+        try {
+
+            //FileInputStream in = this.openFileInput(name);
+            FileInputStream in = new FileInputStream(new File(getExternalFilesDir(null), "exampleout.mid"));
+
+
+            byte[] data = new byte[4096];
+            int total = 0, len = 0;
+            while (true) {
+                len = in.read(data, 0, 4096);
+                if (len > 0)
+                    total += len;
+                else
+                    break;
+            }
+            in.close();
+            data = new byte[total];
+            FileInputStream in1 = new FileInputStream(new File(getExternalFilesDir(null), "exampleout.mid"));
+            int offset = 0;
+            while (offset < total) {
+                len = in1.read(data, offset, total - offset);
+                if (len > 0)
+                    offset += len;
+            }
+            in1.close();
+
+            return data;
+        }
+        catch (IOException e) {
+            Toast toast = Toast.makeText(this, "CheckFile: " + e.toString(), Toast.LENGTH_LONG);
+            toast.show();
+        }
+        catch (MidiFileException e) {
+            Toast toast = Toast.makeText(this, "CheckFile midi: " + e.toString(), Toast.LENGTH_LONG);
+            toast.show();
+        }
+        Log.d("Drum13","here bad data");
+        return null;
     }
 }

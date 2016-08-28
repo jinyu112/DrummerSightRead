@@ -96,6 +96,9 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
 
     private int lastStartJin = 0;
+    private ArrayList<MidiNote> returnedNotes;
+    private ArrayList<MidiTrack> returnedTracks;
+    private TimeSignature returnedTime;
 
     public SheetMusic(Context context) {
         super(context);
@@ -141,6 +144,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         showNoteLetters = options.showNoteLetters;
         //TimeSignature time = file.getTime();
         TimeSignature time = new TimeSignature(4,4,96,1000000);
+        returnedTime = time;
 //        if (options.time != null) {
 //            time = options.time;
 //        }
@@ -1527,7 +1531,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         MidiTrack track = new MidiTrack(0);
         track.setNotes(notes);
         generated_tracks.add(track);
-
+        returnedTracks = generated_tracks;
         return generated_tracks;
     }
 
@@ -1554,9 +1558,14 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
             notes.add(note);
         }
         lastStartJin = runningStartTime+1;
+        returnedNotes=notes;
         return notes;
     }
 
+public ArrayList<MidiNote> getNotes() {return returnedNotes;}
 
+public ArrayList<MidiTrack> getTracks() {return returnedTracks;}
+
+public TimeSignature getTime() {return returnedTime;}
 }
 
