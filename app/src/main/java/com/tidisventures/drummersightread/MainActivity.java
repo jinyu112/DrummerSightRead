@@ -33,12 +33,13 @@ public class MainActivity extends ActionBarActivity {
     public static final int settingsRequestCode = 1;
 
     private MidiPlayer player;   /* The play/stop/rewind toolbar */
-    private Piano piano;         /* The piano at the top */
+    private ArrayList<MidiNote> notes;
     private SheetMusic sheet;    /* The sheet music */
     private LinearLayout layout; /* THe layout */
     private MidiFile midifile;   /* The midi file to play */
     private MidiOptions options; /* The options for sheet music and sound */
     private long midiCRC;      /* CRC of the midi bytes */
+    private int lastStartJin;
 
 
     //added by jin 8/26/16 from midifile
@@ -78,7 +79,7 @@ public class MainActivity extends ActionBarActivity {
 //
 //        // Initialize the settings (MidiOptions).
 //        // If previous settings have been saved, used those
-        midifile = genMidiFile();
+        midifile = genMidiFile(genNotesMain());
         options = new MidiOptions(midifile);
 //        CRC32 crc = new CRC32();
 //        crc.update(data);
@@ -137,6 +138,8 @@ public class MainActivity extends ActionBarActivity {
         sheet = new SheetMusic(this);
         //sheet.init(midifile, options);
 
+        sheet.setNotes(notes);
+        sheet.setLastStartJin(lastStartJin);
         sheet.init2(options);
 
 
@@ -177,7 +180,7 @@ public class MainActivity extends ActionBarActivity {
         return super.onOptionsItemSelected(item);
     }
 
-    public MidiFile genMidiFile() {
+    public MidiFile genMidiFile(ArrayList<MidiNote> tempnotes) {
         com.leff.midi.MidiTrack tempoTrack = new com.leff.midi.MidiTrack();
         com.leff.midi.MidiTrack noteTrack = new com.leff.midi.MidiTrack();
 
@@ -196,20 +199,23 @@ public class MainActivity extends ActionBarActivity {
         tempoTrack.insertEvent(ts);
 
 // Track 1 will have some notes in it
-        final int NOTE_COUNT = 12;
+        int NOTE_COUNT = tempnotes.size();
 
         for(int i = 0; i < NOTE_COUNT; i++)
         {
-            int channel = 0, pitch = 60, velocity = 100;
-            NoteOn on = new NoteOn(i * 96, channel, pitch, velocity);
-            NoteOff off = new NoteOff(i * 96 + 96/2, channel, pitch, 0);
+            int channel = 0, velocity = 100;
+            int pitch = tempnotes.get(i).getNumber();
+            int noteStart = tempnotes.get(i).getStartTime();
+            int noteDuration = tempnotes.get(i).getDuration();
+            NoteOn on = new NoteOn(noteStart, channel, pitch , velocity);
+            NoteOff off = new NoteOff(noteStart + noteDuration, channel, pitch, 0);
 
             noteTrack.insertEvent(on);
             noteTrack.insertEvent(off);
 
             // There is also a utility function for notes that you should use
             // instead of the above.
-            noteTrack.insertNote(channel, pitch , velocity, i * 96, 96);
+            noteTrack.insertNote(channel, pitch , velocity, noteStart, noteDuration);
         }
 
 // 3. Create a MidiFile with the tracks we created
@@ -281,4 +287,31 @@ public class MainActivity extends ActionBarActivity {
         Log.d("Drum13","here bad data");
         return null;
     }
+
+    private ArrayList<MidiNote> genNotesMain() {
+        ArrayList<MidiNote> tempnotes = new ArrayList<MidiNote>(12);
+
+        int numNotes=8*2;
+
+        int runningStartTime = 0;
+        for (int i = 0; i < numNotes; i++) {
+            int randomNum = 1 + (int)(Math.random() * 2);
+            MidiNote note = new MidiNote(0,0,0,0);
+            note.setChannel(0);
+            note.setDuration(48);
+            note.setNumber(60);
+            note.setStartTime(runningStartTime);
+            if (randomNum==1) {
+                runningStartTime += 48;
+            }
+            else {
+                runningStartTime += 96;
+            }
+            tempnotes.add(note);
+        }
+
+        notes=tempnotes;
+        return tempnotes;
+    }
+
 }

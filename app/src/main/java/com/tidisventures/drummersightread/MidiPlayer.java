@@ -356,7 +356,6 @@ public class MidiPlayer extends LinearLayout {
                 count += 1;
             }
         }
-        Log.d("Drum11", "number of tracks: " + count);
         return count;
     }
 
@@ -431,7 +430,6 @@ public class MidiPlayer extends LinearLayout {
             input.close();
             player.prepare();
             player.start();
-            Log.d("Drum14","playing sound");
         }
         catch (IOException e) {
             Toast toast = Toast.makeText(context, "Error: Unable to play MIDI sound", Toast.LENGTH_LONG);
@@ -651,16 +649,13 @@ public class MidiPlayer extends LinearLayout {
         public void run() {
             if (sheet == null) {
                 playstate = stopped;
-                Log.d("Drum11","here1");
                 return;
             }
             else if (playstate == stopped || playstate == paused) {
-                Log.d("Drum11","here2");
             /* This case should never happen */
                 return;
             }
             else if (playstate == initStop) {
-                Log.d("Drum11","here3");
                 return;
             }
             else if (playstate == playing) {
@@ -682,13 +677,10 @@ public class MidiPlayer extends LinearLayout {
 
             /* Stop if we've reached the end of the song */
                 if (currentPulseTime > midifile.getTotalPulses()) { //random hardcoded jin 8/25/16
-                    Log.d("Drum11","reached end of song erroneously " + currentPulseTime);
                     DoStop();
                     return;
                 }
                 sheet.ShadeNotes((int)currentPulseTime, (int)prevPulseTime, true);
-                Log.d("Drum12,", "currentPulseTime: " + currentPulseTime);
-                Log.d("Drum12,","prevPulseTime: " + prevPulseTime);
                 //piano.ShadeNotes((int)currentPulseTime, (int)prevPulseTime);
                 timer.postDelayed(TimerCallback, 100);
                 return;

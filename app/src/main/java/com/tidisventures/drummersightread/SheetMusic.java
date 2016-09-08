@@ -97,6 +97,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
     private int lastStartJin = 0;
     private ArrayList<MidiNote> returnedNotes;
+    private ArrayList<MidiNote> notes;
     private ArrayList<MidiTrack> returnedTracks;
     private TimeSignature returnedTime;
 
@@ -1527,7 +1528,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 //this functions were defined by jin
     private ArrayList<MidiTrack> genTrack() {
         ArrayList<MidiTrack> generated_tracks = new ArrayList<MidiTrack>(1);
-        ArrayList<MidiNote> notes = genNotes();
+        //ArrayList<MidiNote> notes = genNotes();
         MidiTrack track = new MidiTrack(0);
         track.setNotes(notes);
         generated_tracks.add(track);
@@ -1557,7 +1558,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
             }
             notes.add(note);
         }
-        lastStartJin = runningStartTime+1;
+        lastStartJin = runningStartTime+1; //plus one because of end of sheet music measure display issue
         returnedNotes=notes;
         return notes;
     }
@@ -1567,5 +1568,10 @@ public ArrayList<MidiNote> getNotes() {return returnedNotes;}
 public ArrayList<MidiTrack> getTracks() {return returnedTracks;}
 
 public TimeSignature getTime() {return returnedTime;}
+
+
+public void setNotes(ArrayList<MidiNote> notes_in) {this.notes=notes_in;}
+
+public void setLastStartJin(int lastStart_in) {this.lastStartJin=lastStart_in;}
 }
 
