@@ -301,7 +301,7 @@ public class MainActivity extends ActionBarActivity {
             note.setDuration(48);
             note.setNumber(60);
             note.setStartTime(runningStartTime);
-            //testing jin 9/7/16 setting accents
+
             int randomNumAccent = 1 + (int)(Math.random() * 3);
             if (randomNumAccent==1) {
                 note.setAccentNum(1);
@@ -309,7 +309,11 @@ public class MainActivity extends ActionBarActivity {
             else if (randomNumAccent==2) {
                 note.setAccentNum(2);
             }
-            //testing jin 9/7/16
+
+            int randomNumRoll = 1 + (int)(Math.random() * 4);
+            if (randomNumRoll==1) {
+                note.setRollNum(1);
+            }
 
             if (randomNum==1) {
                 runningStartTime += 48;

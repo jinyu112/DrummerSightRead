@@ -27,6 +27,7 @@ public class ChordSymbol implements MusicSymbol {
     private boolean hastwostems;   /** True if this chord has two stems */
     private SheetMusic sheetmusic; /** Used to get colors and other options */
     private AccentSymbol[] accentSymbols;
+    private RollSymbol[] rollSymbols;
 
 
     /** Create a new Chord Symbol from the given list of midi notes.
@@ -60,6 +61,7 @@ public class ChordSymbol implements MusicSymbol {
         notedata = CreateNoteData(midinotes, key, time);
         accidsymbols = CreateAccidSymbols(notedata, clef);
         accentSymbols = CreateAccentSymbols(notedata,clef);
+        rollSymbols = CreateRollSymbols(notedata,clef);
 
 
         /* Find out how many stems we need (1 or 2) */
@@ -163,6 +165,14 @@ public class ChordSymbol implements MusicSymbol {
             }
 
 
+            if (midi.getRollNum()==1) {
+                notedata[i].roll = Roll.Single;
+            }
+            else {
+                notedata[i].roll = Roll.None;
+            }
+
+
 
             if (i > 0 && (notedata[i].whitenote.Dist(notedata[i-1].whitenote) == 1)) {
                 /* This note (notedata[i]) overlaps with the previous note.
@@ -225,6 +235,26 @@ public class ChordSymbol implements MusicSymbol {
             }
         }
         return accentsymbols;
+    }
+
+
+    private static RollSymbol[]
+    CreateRollSymbols(NoteData[] notedata, Clef clef) {
+        int count = 0;
+        for (NoteData n : notedata) {
+            if (n.roll != Roll.None) {
+                count++;
+            }
+        }
+        RollSymbol[] rollsymbols = new RollSymbol[count];
+        int i = 0;
+        for (NoteData n : notedata) {
+            if (n.roll != Roll.None) {
+                rollsymbols[i] = new RollSymbol(n.roll, n.whitenote, clef);
+                i++;
+            }
+        }
+        return rollsymbols;
     }
 
     /** Calculate the stem direction (Up or down) based on the top and
@@ -361,6 +391,13 @@ public class ChordSymbol implements MusicSymbol {
                 result = accentsymbol.getAboveStaff();
             }
         }
+
+        /* Check if any roll symbols extend above the staff */
+        for (RollSymbol rollsymbol : rollSymbols) {
+            if (rollsymbol.getAboveStaff() > result) {
+                result = rollsymbol.getAboveStaff();
+            }
+        }
         return result;
     }
 
@@ -397,6 +434,13 @@ public class ChordSymbol implements MusicSymbol {
         for (AccentSymbol accentsymbol : accentSymbols) {
             if (accentsymbol.getBelowStaff() > result) {
                 result = accentsymbol.getBelowStaff();
+            }
+        }
+
+                /* Check if any roll symbols extend below the staff */
+        for (RollSymbol rollsymbol : rollSymbols) {
+            if (rollsymbol.getBelowStaff() > result) {
+                result = rollsymbol.getBelowStaff();
             }
         }
         return result;
@@ -512,6 +556,8 @@ public class ChordSymbol implements MusicSymbol {
         int xpos = DrawAccid(canvas, paint, ytop);
         DrawAccent(canvas,paint,ytop,xpos);
 
+        DrawRoll(canvas,paint,ytop,xpos);
+
 
 
         /* Draw the notes */
@@ -573,6 +619,21 @@ public class ChordSymbol implements MusicSymbol {
         }
         if (prev != null) {
             xpos += prev.getWidth();
+        }
+    }
+
+
+    public void DrawRoll(Canvas canvas, Paint paint, int ytop, int xpos) {
+
+        RollSymbol prev = null;
+        for (RollSymbol rollsymbol : rollSymbols) {
+            if (prev != null && rollsymbol.getNote().Dist(prev.getNote()) < 6) {
+                xpos += rollsymbol.getWidth();
+            }
+            canvas.translate(xpos, 0);
+            rollsymbol.Draw(canvas, paint, ytop);
+            canvas.translate(-xpos, 0);
+            prev = rollsymbol;
         }
     }
 
