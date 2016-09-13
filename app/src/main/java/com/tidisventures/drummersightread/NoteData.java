@@ -9,4 +9,5 @@ public class NoteData {
     public NoteDuration duration;  /** The duration of the note */
     public boolean leftside;       /** Whether to draw note to the left or right of the stem */
     public Accid accid;            /** Used to create the AccidSymbols for the chord */
+    public Accent accent;
 }

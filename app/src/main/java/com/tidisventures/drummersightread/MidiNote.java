@@ -23,7 +23,15 @@ public class MidiNote implements Comparator<MidiNote> {
     private int channel;     /** The channel */
     private int notenumber;  /** The note, from 0 to 127. Middle C is 60 */
     private int duration;    /** The duration, in pulses */
+    private int accentNum; //0 for none, 1 for marcato, 2 for regular
 
+    public MidiNote() {
+        this.starttime = 0;
+        this.channel = 0;
+        this.notenumber = 0;
+        this.duration = 0;
+        this.accentNum = 0;
+    }
 
     /* Create a new MidiNote.  This is called when a NoteOn event is
      * encountered in the MidiFile.
@@ -33,6 +41,7 @@ public class MidiNote implements Comparator<MidiNote> {
         this.channel = channel;
         this.notenumber = notenumber;
         this.duration = duration;
+        this.accentNum = 0;
     }
 
 
@@ -49,6 +58,9 @@ public class MidiNote implements Comparator<MidiNote> {
 
     public int getDuration() { return duration; }
     public void setDuration(int value) { duration = value; }
+
+    public int getAccentNum() { return accentNum; }
+    public void setAccentNum(int value) { accentNum = value; }
 
     /* A NoteOff event occurs for this note at the given time.
      * Calculate the note duration based on the noteoff event.

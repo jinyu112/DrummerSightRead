@@ -1537,7 +1537,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     }
 
 
-    private ArrayList<MidiNote> genNotes() {
+    private ArrayList<MidiNote> genNotes() { //this was moved to genNotesMain in main activity. genNOtes is no longer used
         ArrayList<MidiNote> notes = new ArrayList<MidiNote>(12);
 
         int numNotes=8*2;
@@ -1550,6 +1550,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
             note.setDuration(48);
             note.setNumber(60);
             note.setStartTime(runningStartTime);
+
             if (randomNum==1) {
                 runningStartTime += 48;
             }

@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.util.Log;
 
 import java.util.ArrayList;
 
@@ -25,6 +26,7 @@ public class ChordSymbol implements MusicSymbol {
     private Stem stem2;            /** The second stem of the chord. Can be null */
     private boolean hastwostems;   /** True if this chord has two stems */
     private SheetMusic sheetmusic; /** Used to get colors and other options */
+    private AccentSymbol[] accentSymbols;
 
 
     /** Create a new Chord Symbol from the given list of midi notes.
@@ -57,6 +59,7 @@ public class ChordSymbol implements MusicSymbol {
 
         notedata = CreateNoteData(midinotes, key, time);
         accidsymbols = CreateAccidSymbols(notedata, clef);
+        accentSymbols = CreateAccentSymbols(notedata,clef);
 
 
         /* Find out how many stems we need (1 or 2) */
@@ -149,6 +152,18 @@ public class ChordSymbol implements MusicSymbol {
             notedata[i].duration = time.GetNoteDuration(midi.getEndTime() - midi.getStartTime());
             notedata[i].accid = key.GetAccidental(midi.getNumber(), midi.getStartTime() / time.getMeasure());
 
+            if (midi.getAccentNum()==1) {
+                notedata[i].accent = Accent.Marcato;
+            }
+            else if (midi.getAccentNum()==2) {
+                notedata[i].accent = Accent.Regular;
+            }
+            else {
+                notedata[i].accent = Accent.None;
+            }
+
+
+
             if (i > 0 && (notedata[i].whitenote.Dist(notedata[i-1].whitenote) == 1)) {
                 /* This note (notedata[i]) overlaps with the previous note.
                  * Change the side of this note.
@@ -187,6 +202,29 @@ public class ChordSymbol implements MusicSymbol {
             }
         }
         return accidsymbols;
+    }
+
+
+    /** Given the note data (the white keys and accents), create
+     * the accent Symbols and return them.
+     */
+    private static AccentSymbol[]
+    CreateAccentSymbols(NoteData[] notedata, Clef clef) {
+        int count = 0;
+        for (NoteData n : notedata) {
+            if (n.accent != Accent.None) {
+                count++;
+            }
+        }
+        AccentSymbol[] accentsymbols = new AccentSymbol[count];
+        int i = 0;
+        for (NoteData n : notedata) {
+            if (n.accent != Accent.None) {
+                accentsymbols[i] = new AccentSymbol(n.accent, n.whitenote, clef);
+                i++;
+            }
+        }
+        return accentsymbols;
     }
 
     /** Calculate the stem direction (Up or down) based on the top and
@@ -316,6 +354,13 @@ public class ChordSymbol implements MusicSymbol {
                 result = symbol.getAboveStaff();
             }
         }
+
+        /* Check if any accidental symbols extend above the staff */
+        for (AccentSymbol accentsymbol : accentSymbols) {
+            if (accentsymbol.getAboveStaff() > result) {
+                result = accentsymbol.getAboveStaff();
+            }
+        }
         return result;
     }
 
@@ -345,6 +390,13 @@ public class ChordSymbol implements MusicSymbol {
         for (AccidSymbol symbol : accidsymbols) {
             if (symbol.getBelowStaff() > result) {
                 result = symbol.getBelowStaff();
+            }
+        }
+
+                /* Check if any accidental symbols extend below the staff */
+        for (AccentSymbol accentsymbol : accentSymbols) {
+            if (accentsymbol.getBelowStaff() > result) {
+                result = accentsymbol.getBelowStaff();
             }
         }
         return result;
@@ -458,10 +510,14 @@ public class ChordSymbol implements MusicSymbol {
         /* Draw the accidentals. */
         WhiteNote topstaff = WhiteNote.Top(clef);
         int xpos = DrawAccid(canvas, paint, ytop);
+        DrawAccent(canvas,paint,ytop,xpos);
+
+
 
         /* Draw the notes */
         canvas.translate(xpos, 0);
         DrawNotes(canvas, paint, ytop, topstaff);
+
 
         if (sheetmusic != null && sheetmusic.getShowNoteLetters() != 0) {
             DrawNoteLetters(canvas, paint, ytop, topstaff);
@@ -500,6 +556,24 @@ public class ChordSymbol implements MusicSymbol {
             xpos += prev.getWidth();
         }
         return xpos;
+    }
+
+
+    public void DrawAccent(Canvas canvas, Paint paint, int ytop, int xpos) {
+
+        AccentSymbol prev = null;
+        for (AccentSymbol accentsymbol : accentSymbols) {
+            if (prev != null && accentsymbol.getNote().Dist(prev.getNote()) < 6) {
+                xpos += accentsymbol.getWidth();
+            }
+            canvas.translate(xpos, 0);
+            accentsymbol.Draw(canvas, paint, ytop);
+            canvas.translate(-xpos, 0);
+            prev = accentsymbol;
+        }
+        if (prev != null) {
+            xpos += prev.getWidth();
+        }
     }
 
     /** Draw the black circle notes.
