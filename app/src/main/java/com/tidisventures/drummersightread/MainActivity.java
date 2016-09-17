@@ -295,27 +295,36 @@ public class MainActivity extends ActionBarActivity {
 
         int runningStartTime = 0;
         for (int i = 0; i < numNotes; i++) {
-            int randomNum = 1 + (int)(Math.random() * 2);
+
             MidiNote note = new MidiNote(0,0,0,0);
             note.setChannel(0);
             note.setDuration(48);
             note.setNumber(60);
             note.setStartTime(runningStartTime);
 
-            int randomNumAccent = 1 + (int)(Math.random() * 3);
+            //accents
+            int randomNumAccent = 1 + (int)(Math.random() * 8);
             if (randomNumAccent==1) {
                 note.setAccentNum(1);
             }
             else if (randomNumAccent==2) {
                 note.setAccentNum(2);
             }
-
+            //rolls
             int randomNumRoll = 1 + (int)(Math.random() * 4);
             if (randomNumRoll==1) {
                 note.setRollNum(1);
             }
 
-            if (randomNum==1) {
+            //flams
+            int randomNumFlam = 1 + (int)(Math.random() * 5);
+            if (randomNumFlam==1) {
+                note.setFlamNum(1);
+            }
+
+            //notes
+            int randomNum = 1 + (int)(Math.random() * 4);
+            if (randomNum < 4) {
                 runningStartTime += 48;
             }
             else {

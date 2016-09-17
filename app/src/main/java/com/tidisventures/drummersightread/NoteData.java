@@ -11,4 +11,5 @@ public class NoteData {
     public Accid accid;            /** Used to create the AccidSymbols for the chord */
     public Accent accent;
     public Roll roll;
+    public Flam flam;
 }

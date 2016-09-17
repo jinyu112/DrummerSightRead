@@ -99,7 +99,7 @@ public class AccentSymbol implements MusicSymbol {
 
         int ystart = ynote  - SheetMusic.NoteHeight*3 - 8;
         int yend = ystart - SheetMusic.NoteHeight;
-        int x = SheetMusic.NoteHeight / 2 - 2;
+        int x = SheetMusic.NoteHeight / 2;
         paint.setStrokeWidth(2);
         canvas.drawLine(x, ystart, x + 6, yend, paint);
         x += SheetMusic.NoteHeight/2 + 4;

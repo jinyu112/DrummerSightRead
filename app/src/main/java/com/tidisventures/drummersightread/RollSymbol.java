@@ -89,11 +89,12 @@ public class RollSymbol implements MusicSymbol {
     public void DrawSingleRoll(Canvas canvas, Paint paint, int ynote) {
 
 
-        int ystart = ynote  - SheetMusic.NoteHeight;
-        int yend = ystart - SheetMusic.NoteHeight + 5;
-        int x = SheetMusic.NoteHeight / 2 + 9;
+        int ystart = ynote  - SheetMusic.NoteHeight - SheetMusic.NoteHeight/5;
+        int yend = ystart - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
+        int x = SheetMusic.NoteHeight * 7 / 10 ;
+        int xend = x + SheetMusic.NoteHeight*3/2;
         paint.setStrokeWidth(5);
-        canvas.drawLine(x, ystart, x + 13, yend, paint);
+        canvas.drawLine(x, ystart, xend, yend, paint);
 
     }
 

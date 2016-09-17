@@ -25,6 +25,7 @@ public class MidiNote implements Comparator<MidiNote> {
     private int duration;    /** The duration, in pulses */
     private int accentNum; //0 for none, 1 for marcato, 2 for regular
     private int rollNum; //0 for none, 1 for single
+    private int flamNum; //0 for none, 1 for flam
 
     public MidiNote() {
         this.starttime = 0;
@@ -33,6 +34,7 @@ public class MidiNote implements Comparator<MidiNote> {
         this.duration = 0;
         this.accentNum = 0;
         this.rollNum = 0;
+        this.flamNum = 0;
 
     }
 
@@ -46,6 +48,7 @@ public class MidiNote implements Comparator<MidiNote> {
         this.duration = duration;
         this.accentNum = 0;
         this.rollNum = 0;
+        this.flamNum = 0;
     }
 
 
@@ -68,6 +71,9 @@ public class MidiNote implements Comparator<MidiNote> {
 
     public int getRollNum() { return rollNum; }
     public void setRollNum(int value) { rollNum = value; }
+
+    public int getFlamNum() { return flamNum; }
+    public void setFlamNum(int value) { flamNum = value; }
 
     /* A NoteOff event occurs for this note at the given time.
      * Calculate the note duration based on the noteoff event.

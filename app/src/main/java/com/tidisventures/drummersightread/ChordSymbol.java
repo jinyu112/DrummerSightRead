@@ -28,6 +28,7 @@ public class ChordSymbol implements MusicSymbol {
     private SheetMusic sheetmusic; /** Used to get colors and other options */
     private AccentSymbol[] accentSymbols;
     private RollSymbol[] rollSymbols;
+    private FlamSymbol[] flamSymbols;
 
 
     /** Create a new Chord Symbol from the given list of midi notes.
@@ -60,8 +61,9 @@ public class ChordSymbol implements MusicSymbol {
 
         notedata = CreateNoteData(midinotes, key, time);
         accidsymbols = CreateAccidSymbols(notedata, clef);
-        accentSymbols = CreateAccentSymbols(notedata,clef);
-        rollSymbols = CreateRollSymbols(notedata,clef);
+        accentSymbols = CreateAccentSymbols(notedata, clef);
+        rollSymbols = CreateRollSymbols(notedata, clef);
+        flamSymbols = CreateFlamSymbols(notedata, clef);
 
 
         /* Find out how many stems we need (1 or 2) */
@@ -172,6 +174,13 @@ public class ChordSymbol implements MusicSymbol {
                 notedata[i].roll = Roll.None;
             }
 
+            if (midi.getFlamNum()==1) {
+                notedata[i].flam = Flam.Flam;
+            }
+            else {
+                notedata[i].flam = Flam.None;
+            }
+
 
 
             if (i > 0 && (notedata[i].whitenote.Dist(notedata[i-1].whitenote) == 1)) {
@@ -256,6 +265,27 @@ public class ChordSymbol implements MusicSymbol {
         }
         return rollsymbols;
     }
+
+
+    private static FlamSymbol[]
+    CreateFlamSymbols(NoteData[] notedata, Clef clef) {
+        int count = 0;
+        for (NoteData n : notedata) {
+            if (n.flam != Flam.None) {
+                count++;
+            }
+        }
+        FlamSymbol[] flamsymbols = new FlamSymbol[count];
+        int i = 0;
+        for (NoteData n : notedata) {
+            if (n.flam != Flam.None) {
+                flamsymbols[i] = new FlamSymbol(n.flam, n.whitenote, clef);
+                i++;
+            }
+        }
+        return flamsymbols;
+    }
+
 
     /** Calculate the stem direction (Up or down) based on the top and
      * bottom note in the chord.  If the average of the notes is above
@@ -558,6 +588,8 @@ public class ChordSymbol implements MusicSymbol {
 
         DrawRoll(canvas,paint,ytop,xpos);
 
+        DrawFlam(canvas,paint,ytop,xpos);
+
 
 
         /* Draw the notes */
@@ -634,6 +666,20 @@ public class ChordSymbol implements MusicSymbol {
             rollsymbol.Draw(canvas, paint, ytop);
             canvas.translate(-xpos, 0);
             prev = rollsymbol;
+        }
+    }
+
+    public void DrawFlam(Canvas canvas, Paint paint, int ytop, int xpos) {
+
+        FlamSymbol prev = null;
+        for (FlamSymbol flamsymbol : flamSymbols) {
+            if (prev != null && flamsymbol.getNote().Dist(prev.getNote()) < 6) {
+                xpos += flamsymbol.getWidth();
+            }
+            canvas.translate(xpos, 0);
+            flamsymbol.Draw(canvas, paint, ytop);
+            canvas.translate(-xpos, 0);
+            prev = flamsymbol;
         }
     }
 
