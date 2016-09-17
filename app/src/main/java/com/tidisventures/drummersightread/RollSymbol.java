@@ -77,17 +77,24 @@ public class RollSymbol implements MusicSymbol {
         /* Store the y-pixel value of the top of the whitenote in ynote. */
         int ynote = ytop + WhiteNote.Top(clef).Dist(whitenote) *
                 SheetMusic.NoteHeight/2;
+        if (roll == Roll.Single) {
+            DrawSingleRoll(canvas, paint, ynote);
+        }
+        else if (roll == Roll.Double) {
+            DrawDoubleRoll(canvas,paint,ynote);
+        }
+        else if (roll == Roll.Triple) {
+            DrawTripleRoll(canvas, paint, ynote);
+        }
 
-        DrawSingleRoll(canvas, paint, ynote);
 
         canvas.translate(-(getWidth() - getMinWidth()), 0);
     }
 
-    /** Draw a marcato symbol.
+    /** Draw a single roll symbol.
      * @param ynote The pixel location of the top of the accidental's note.
      */
     public void DrawSingleRoll(Canvas canvas, Paint paint, int ynote) {
-
 
         int ystart = ynote  - SheetMusic.NoteHeight - SheetMusic.NoteHeight/5;
         int yend = ystart - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
@@ -95,6 +102,43 @@ public class RollSymbol implements MusicSymbol {
         int xend = x + SheetMusic.NoteHeight*3/2;
         paint.setStrokeWidth(5);
         canvas.drawLine(x, ystart, xend, yend, paint);
+
+    }
+
+    public void DrawDoubleRoll(Canvas canvas, Paint paint, int ynote) {
+
+        int ystart = ynote  - SheetMusic.NoteHeight - SheetMusic.NoteHeight/4;
+        int yend = ystart - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
+        int x = SheetMusic.NoteHeight * 7 / 10 ;
+        int xend = x + SheetMusic.NoteHeight*3/2;
+        paint.setStrokeWidth(5);
+        canvas.drawLine(x, ystart, xend, yend, paint);
+
+        ystart = ystart + SheetMusic.NoteHeight/2;
+        yend = ystart  - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
+        canvas.drawLine(x, ystart, xend, yend, paint);
+
+    }
+
+    public void DrawTripleRoll(Canvas canvas, Paint paint, int ynote) {
+
+        int ystart = ynote  - SheetMusic.NoteHeight - SheetMusic.NoteHeight/5;
+        int yend = ystart - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
+        int x = SheetMusic.NoteHeight * 7 / 10 ;
+        int xend = x + SheetMusic.NoteHeight*3/2;
+        paint.setStrokeWidth(5);
+        canvas.drawLine(x, ystart, xend, yend, paint);
+
+        int ystart0 = ystart;
+
+        ystart = ystart0 + SheetMusic.NoteHeight/2;
+        yend = ystart  - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
+        canvas.drawLine(x, ystart, xend, yend, paint);
+
+        ystart = ystart0 - SheetMusic.NoteHeight/2;
+        yend = ystart  - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
+        canvas.drawLine(x, ystart, xend, yend, paint);
+
 
     }
 

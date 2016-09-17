@@ -311,9 +311,15 @@ public class MainActivity extends ActionBarActivity {
                 note.setAccentNum(2);
             }
             //rolls
-            int randomNumRoll = 1 + (int)(Math.random() * 4);
-            if (randomNumRoll==1) {
+            int randomNumRoll = 1 + (int)(Math.random() * 50);
+            if (randomNumRoll<6) { //10%
                 note.setRollNum(1);
+            }
+            else if (randomNumRoll<9) { //6%
+                note.setRollNum(2);
+            }
+            else if (randomNumRoll==10) { //2%
+                note.setRollNum(3);
             }
 
             //flams

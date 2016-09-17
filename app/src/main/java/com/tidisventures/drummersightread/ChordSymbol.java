@@ -156,6 +156,7 @@ public class ChordSymbol implements MusicSymbol {
             notedata[i].duration = time.GetNoteDuration(midi.getEndTime() - midi.getStartTime());
             notedata[i].accid = key.GetAccidental(midi.getNumber(), midi.getStartTime() / time.getMeasure());
 
+            //Accents
             if (midi.getAccentNum()==1) {
                 notedata[i].accent = Accent.Marcato;
             }
@@ -166,14 +167,21 @@ public class ChordSymbol implements MusicSymbol {
                 notedata[i].accent = Accent.None;
             }
 
-
+            //Rolls
             if (midi.getRollNum()==1) {
                 notedata[i].roll = Roll.Single;
+            }
+            else if (midi.getRollNum()==2) {
+                notedata[i].roll = Roll.Double;
+            }
+            else if (midi.getRollNum()==3) {
+                notedata[i].roll = Roll.Triple;
             }
             else {
                 notedata[i].roll = Roll.None;
             }
 
+            //Flams
             if (midi.getFlamNum()==1) {
                 notedata[i].flam = Flam.Flam;
             }

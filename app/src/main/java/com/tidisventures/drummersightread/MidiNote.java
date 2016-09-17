@@ -24,7 +24,7 @@ public class MidiNote implements Comparator<MidiNote> {
     private int notenumber;  /** The note, from 0 to 127. Middle C is 60 */
     private int duration;    /** The duration, in pulses */
     private int accentNum; //0 for none, 1 for marcato, 2 for regular
-    private int rollNum; //0 for none, 1 for single
+    private int rollNum; //0 for none, 1 for single, 2 for double, 3 for triple
     private int flamNum; //0 for none, 1 for flam
 
     public MidiNote() {
