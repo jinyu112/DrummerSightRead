@@ -54,7 +54,7 @@ public class RestSymbol implements MusicSymbol {
     void Draw(Canvas canvas, Paint paint, int ytop) {
         /* Align the rest symbol to the right */
         canvas.translate(getWidth() - getMinWidth(), 0);
-        canvas.translate(SheetMusic.NoteHeight/2, 0);
+        canvas.translate(SheetMusic.NoteHeight / 2, 0);
 
         if (duration == NoteDuration.Whole) {
             DrawWhole(canvas, paint, ytop);
@@ -68,7 +68,10 @@ public class RestSymbol implements MusicSymbol {
         else if (duration == NoteDuration.Eighth) {
             DrawEighth(canvas, paint, ytop);
         }
-        canvas.translate(-SheetMusic.NoteHeight/2, 0);
+        else if (duration == NoteDuration.Sixteenth) {
+            DrawSixteenth(canvas, paint, ytop);
+        }
+        canvas.translate(-SheetMusic.NoteHeight / 2, 0);
         canvas.translate(-(getWidth() - getMinWidth()), 0);
     }
 
@@ -89,7 +92,7 @@ public class RestSymbol implements MusicSymbol {
     public void DrawHalf(Canvas canvas, Paint paint, int ytop) {
         int y = ytop + SheetMusic.NoteHeight + SheetMusic.NoteHeight/2;
         paint.setStyle(Paint.Style.FILL);
-        canvas.drawRect(0, y, SheetMusic.NoteWidth, y + SheetMusic.NoteHeight/2, paint);
+        canvas.drawRect(0, y, SheetMusic.NoteWidth, y + SheetMusic.NoteHeight / 2, paint);
         paint.setStyle(Paint.Style.STROKE);
     }
 
@@ -111,7 +114,7 @@ public class RestSymbol implements MusicSymbol {
 
         paint.setStrokeWidth(1);
         y = ytop + SheetMusic.NoteHeight*2 - 1;
-        canvas.drawLine(0, y, xend+2, y + SheetMusic.NoteHeight, paint);
+        canvas.drawLine(0, y, xend + 2, y + SheetMusic.NoteHeight, paint);
 
         paint.setStrokeWidth(SheetMusic.LineSpace/2);
         if (SheetMusic.NoteHeight == 6) {
@@ -139,15 +142,55 @@ public class RestSymbol implements MusicSymbol {
         canvas.drawOval(rect, paint);
         paint.setStyle(Paint.Style.STROKE);
         paint.setStrokeWidth(1);
-        canvas.drawLine((SheetMusic.LineSpace-2)/2, y + SheetMusic.LineSpace-1,
-                3*SheetMusic.LineSpace/2, y + SheetMusic.LineSpace/2, paint);
-        canvas.drawLine(3*SheetMusic.LineSpace/2, y + SheetMusic.LineSpace/2,
-                3*SheetMusic.LineSpace/4, y + SheetMusic.NoteHeight*2, paint);
+        canvas.drawLine((SheetMusic.LineSpace - 2) / 2, y + SheetMusic.LineSpace - 1,
+                3 * SheetMusic.LineSpace / 2, y + SheetMusic.LineSpace / 2, paint);
+        canvas.drawLine(3 * SheetMusic.LineSpace / 2, y + SheetMusic.LineSpace / 2,
+                3 * SheetMusic.LineSpace / 4, y + SheetMusic.NoteHeight * 2, paint);
     }
 
     public String toString() {
         return String.format("RestSymbol starttime=%1$s duration=%2$s width=%3$s",
                 starttime, duration, width);
+    }
+
+
+    /** Draw an eighth rest symbol.
+     * @param ytop The ylocation (in pixels) where the top of the staff starts.
+     */
+    public void DrawSixteenth(Canvas canvas, Paint paint, int ytop) {
+        int y = ytop + 3*SheetMusic.NoteHeight/2 - 1;
+        RectF rect = new RectF(0, y+1,
+                SheetMusic.LineSpace-1, y+1 + SheetMusic.LineSpace-1);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawOval(rect, paint);
+        paint.setStyle(Paint.Style.STROKE);
+        paint.setStrokeWidth(1);
+        int x0 =(SheetMusic.LineSpace - 2) / 2;
+        int x1= 3 * SheetMusic.LineSpace / 2;
+        int x2 =3 * SheetMusic.LineSpace / 4;
+        canvas.drawLine(x0, y + SheetMusic.LineSpace - 1,
+                x1, y + SheetMusic.LineSpace / 2, paint);
+        canvas.drawLine(x1, y + SheetMusic.LineSpace / 2,
+                x2 , y + SheetMusic.NoteHeight * 2, paint);
+
+        //drawing the (top) second bulb including the lines for the sixteenth rest
+        //first line
+        double slope = ((y + SheetMusic.LineSpace / 2) - (y - SheetMusic.NoteHeight))/ - x2;
+        double slopeInt = -slope * x1 + y + SheetMusic.LineSpace/2;
+        int x3 = x1 + SheetMusic.NoteHeight/2;
+        int y3 = (int) Math.round(slope*x3 + slopeInt);
+        canvas.drawLine(x1, y + SheetMusic.LineSpace / 2,
+                x3 , y3, paint);
+
+        //2nd shorter line
+        canvas.drawLine(x3, y3, x3-Math.abs(x0-x1) , y3 + Math.abs(SheetMusic.LineSpace/2 - SheetMusic.LineSpace + 1), paint);
+
+        //bulb 2
+        rect = new RectF(SheetMusic.NoteHeight/3, y3 - SheetMusic.NoteHeight/4,
+                SheetMusic.LineSpace-1+SheetMusic.NoteHeight/3, y3 + SheetMusic.LineSpace-1- SheetMusic.NoteHeight/4);
+        paint.setStyle(Paint.Style.FILL);
+        canvas.drawOval(rect, paint);
+
     }
 
 }
