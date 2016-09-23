@@ -1,0 +1,127 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools" android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="10dp"
+    android:gravity="center_horizontal">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:gravity="center_horizontal">
+        <TextView android:text="@string/settings" android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:id="@+id/settings_tv"/>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+
+            <TextView
+                android:text="Metronome On?"
+                android:id="@+id/settings_meton"
+                android:layout_height="fill_parent"
+                android:singleLine="true"
+                android:layout_width="0dp"
+                android:layout_weight="50"
+                android:gravity="center_vertical"/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/settings_cbmeton"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:text="Emphasize Syncopation"
+                android:id="@+id/settings_sync"
+                android:layout_height="fill_parent"
+                android:singleLine="true"
+                android:layout_width="0dp"
+                android:layout_weight="50"
+                android:gravity="center_vertical"/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/settings_cbsync"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:text="Include Accents?"
+                android:id="@+id/settings_accents"
+                android:layout_height="fill_parent"
+                android:singleLine="true"
+                android:layout_width="0dp"
+                android:layout_weight="50"
+                android:gravity="center_vertical"/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/settings_cbaccents"/>
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:text="Include Rolls?"
+                android:id="@+id/settings_rolls"
+                android:layout_height="fill_parent"
+                android:singleLine="true"
+                android:layout_width="0dp"
+                android:layout_weight="50"
+                android:gravity="center_vertical"/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/settings_cbrolls"/>
+        </LinearLayout>
+        <LinearLayout
+            android:layout_width="fill_parent"
+            android:layout_height="0dp"
+            android:layout_weight="1"
+            android:paddingLeft="10dp"
+            android:paddingRight="10dp"
+            android:gravity="center_vertical"
+            android:orientation="horizontal">
+            <TextView
+                android:text="Include Flams?"
+                android:id="@+id/settings_flam"
+                android:layout_height="fill_parent"
+                android:singleLine="true"
+                android:layout_width="0dp"
+                android:layout_weight="50"
+                android:gravity="center_vertical"/>
+            <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/settings_cbflam"/>
+        </LinearLayout>
+
+    </LinearLayout>
+</LinearLayout>

@@ -13,6 +13,7 @@ import android.media.MediaScannerConnection;
 import android.os.Bundle;
 import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -20,13 +21,18 @@ import android.view.MenuItem;
 import android.view.View;
 import android.widget.EditText;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.leff.midi.*;
+import com.leff.midi.event.NoteOff;
+import com.leff.midi.event.NoteOn;
 import com.leff.midi.event.meta.Tempo;
 
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ObjectInputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
 import java.net.URLEncoder;
@@ -42,522 +48,366 @@ import java.util.zip.CRC32;
  * - SheetMusic : For highlighting the sheet music notes during playback.
  *
  */
-public class SightReader extends Activity {
+public class SightReader extends ActionBarActivity {
 
     public static final String MidiDataID = "MidiDataID";
     public static final String MidiTitleID = "MidiTitleID";
     public static final int settingsRequestCode = 1;
+    private String filename = "mySettings";
 
+    private MidiPlayer player;   /* The play/stop/rewind toolbar */
+    private ArrayList<MidiNote> notes;
     private SheetMusic sheet;    /* The sheet music */
     private LinearLayout layout; /* THe layout */
+    private MidiFile midifile;   /* The midi file to play */
+    private MidiOptions options; /* The options for sheet music and sound */
     private long midiCRC;      /* CRC of the midi bytes */
-    ArrayList<MusicSymbol> noteSequence = new ArrayList<MusicSymbol>(10);
+    private int lastStartJin;
 
-    /** Create this SheetMusicActivity.  The Intent should have two parameters:
-     * - MidiTitleID: The title of the song (String)
-     * - MidiDataID: The raw byte[] data of the midi file.
-     */
+
+    //added by jin 8/26/16 from midifile
+    /* The list of Midi Events */
+    public static final byte EventNoteOff         = (byte)0x80;
+    public static final byte EventNoteOn          = (byte)0x90;
+    public static final byte EventKeyPressure     = (byte)0xA0;
+    public static final byte EventControlChange   = (byte)0xB0;
+    public static final byte EventProgramChange   = (byte)0xC0;
+    public static final byte EventChannelPressure = (byte)0xD0;
+    public static final byte EventPitchBend       = (byte)0xE0;
+    public static final byte SysexEvent1          = (byte)0xF0;
+    public static final byte SysexEvent2          = (byte)0xF7;
+
+
     @Override
-    public void onCreate(Bundle state) {
-        super.onCreate(state);
-        setContentView(R.layout.sightreader);
+    protected void onCreate(Bundle savedInstanceState) {
+        super.onCreate(savedInstanceState);
+        //setContentView(R.layout.activity_main);
+
+
+        //read in the settings from persistent memory
+        if (fileExistance(filename)) {
+            String[] settingsOut = readSettingsDataInternal();
+            if (settingsOut[0].equals("1")) {
+                Log.d("Drumm16","Metrnome on"); //metronome
+            }
+            if (settingsOut[1].equals("1")) {
+                Log.d("Drumm16", "syncop on"); //syncopation
+            }
+            if (settingsOut[2].equals("1")) {
+                Log.d("Drumm16", "accents on"); //accents
+            }
+            if (settingsOut[3].equals("1")) {
+                Log.d("Drumm16","rolls on"); //rolls
+            }
+            if (settingsOut[4].equals("1")) {
+                Log.d("Drumm16", "flams on"); //flams
+            }
+        }
+
         ClefSymbol.LoadImages(this);
         TimeSigSymbol.LoadImages(this);
-        //MidiPlayer.LoadImages(this);
+        MidiPlayer.LoadImages(this);
 
-        // Parse the MidiFile from the raw bytes
-        //byte[] data = this.getIntent().getByteArrayExtra(MidiDataID);
-        //String title = this.getIntent().getStringExtra(MidiTitleID);
-        //this.setTitle("MidiSheetMusic: " + title);
-        //try {
-        //    midifile = new MidiFile(data, title);
-        //}
-        //catch (MidiFileException e) {
-        //    this.finish();
-        //    return;
-        //}
-
-//         Initialize the settings (MidiOptions).
-//         If previous settings have been saved, used those
-        //options = new MidiOptions(midifile);
-        //CRC32 crc = new CRC32(); //declare a checksum class
-        //crc.update(data); //updates the checksum with an array of bytes
-        //midiCRC = crc.getValue(); //long defining the checksum value
-//        SharedPreferences settings = getPreferences(0);
-//        options.scrollVert = settings.getBoolean("scrollVert", false);
-//        options.shade1Color = settings.getInt("shade1Color", options.shade1Color);
-//        options.shade2Color = settings.getInt("shade2Color", options.shade2Color);
+//        // Parse the MidiFile from the raw bytes
+//        byte[] data = this.getIntent().getByteArrayExtra(MidiDataID);
+//        String title = this.getIntent().getStringExtra(MidiTitleID);
+//        this.setTitle("MidiSheetMusic: " + title);
+//        try {
+//            midifile = new MidiFile(data, title);
+//        }
+//        catch (MidiFileException e) {
+//            this.finish();
+//            return;
+//        }
+//
+//        // Initialize the settings (MidiOptions).
+//        // If previous settings have been saved, used those
+        midifile = genMidiFile(genNotesMain());
+        options = new MidiOptions(midifile);
+//        CRC32 crc = new CRC32();
+//        crc.update(data);
+//        midiCRC = crc.getValue();
+        SharedPreferences settings = getPreferences(0);
+        options.scrollVert = settings.getBoolean("scrollVert", false);
+        options.shade1Color = settings.getInt("shade1Color", options.shade1Color);
+        options.shade2Color = settings.getInt("shade2Color", options.shade2Color);
 //        String json = settings.getString("" + midiCRC, null);
 //        MidiOptions savedOptions = MidiOptions.fromJson(json);
 //        if (savedOptions != null) {
 //            options.merge(savedOptions);
 //        }
-//        createView();
-//        createSheetMusic(options);
+        createView();
+        createSheetMusic(options);
+
+//        Button butt = (Button) findViewById(R.id.butt);
+//
+//        butt.setOnClickListener(new View.OnClickListener() {
+//            @Override
+//            public void onClick(View arg0) {
+//                Intent i = new Intent(getApplicationContext(), SightReader.class);
+//                startActivity(i);
+//                finish();
+//            }
+//
+//        });
     }
 
     /* Create the MidiPlayer and Piano views */
     void createView() {
-//        layout = new LinearLayout(this);
-//        layout.setOrientation(LinearLayout.VERTICAL);
-//        player = new MidiPlayer(this);
-//        piano = new Piano(this);
-//        layout.addView(player);
-//        layout.addView(piano);
-//        setContentView(layout);
-//        player.SetPiano(piano);
-//        layout.requestLayout();
+        layout = new LinearLayout(this);
+
+        layout.setOrientation(LinearLayout.VERTICAL);
+        player = new MidiPlayer(this);
+        //piano = new Piano(this);
+        layout.addView(player);
+        //layout.addView(piano);
+        setContentView(layout);
+        //player.SetPiano(piano);
+        layout.requestLayout();
     }
 
     /** Create the SheetMusic view with the given options */
     private void
     createSheetMusic(MidiOptions options) {
-//        if (sheet != null) {
-//            layout.removeView(sheet);
-//        }
+        if (sheet != null) {
+            layout.removeView(sheet);
+        }
 //        if (!options.showPiano) {
 //            piano.setVisibility(View.GONE);
 //        }
 //        else {
 //            piano.setVisibility(View.VISIBLE);
 //        }
-//        sheet = new SheetMusic(this);
-//        sheet.init(midifile, options);
-//        sheet.setPlayer(player);
-//        layout.addView(sheet);
-//        piano.SetMidiFile(midifile, options, player);
-//        piano.SetShadeColors(options.shade1Color, options.shade2Color);
-//        player.SetMidiFile(midifile, options, sheet);
-//        layout.requestLayout();
-//        sheet.callOnDraw();
+        sheet = new SheetMusic(this);
+        //sheet.init(midifile, options);
+
+        sheet.setNotes(notes);
+        sheet.setLastStartJin(lastStartJin);
+        sheet.init2(options);
+
+
+        //sheet.setPlayer(player);
+        layout.addView(sheet);
+        //piano.SetMidiFile(midifile, options, player);
+        //piano.SetShadeColors(options.shade1Color, options.shade2Color);
+
+//        midifile = new MidiFile("adsf",genEvents(sheet.getNotes()),sheet.getTracks(),(short) 0,sheet.getTime(),96,96*4*12,false);
+
+        //player.SetMidiFile(midifile, options, sheet);
+        player.SetMidiFile(midifile, options, sheet);
+
+        layout.requestLayout();
+        sheet.callOnDraw();
     }
 
 
-    /** Always display this activity in landscape mode. */
-    @Override
-    public void onConfigurationChanged(Configuration newConfig) {
-        super.onConfigurationChanged(newConfig);
-    }
-
-    /** When the menu button is pressed, initialize the menus. */
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
-//        if (player != null) {
-//            player.Pause();
-//        }
-//        MenuInflater inflater = getMenuInflater();
-//        inflater.inflate(R.menu.sheet_menu, menu);
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.menu_main, menu);
         return true;
     }
 
-    /** Callback when a menu item is selected.
-     *  - Choose Song : Choose a new song
-     *  - Song Settings : Adjust the sheet music and sound options
-     *  - Save As Images: Save the sheet music as PNG images
-     *  - Help : Display the HTML help screen
-     */
     @Override
     public boolean onOptionsItemSelected(MenuItem item) {
-//        switch (item.getItemId()) {
-//            case R.id.choose_song:
-//                chooseSong();
-//                return true;
-//            case R.id.song_settings:
-//                changeSettings();
-//                return true;
-//            case R.id.save_images:
-//                showSaveImagesDialog();
-//                return true;
-//            case R.id.help:
-//                showHelp();
-//                return true;
-//            default:
-//                return super.onOptionsItemSelected(item);
-//        }
-        return true;
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+
+        //noinspection SimplifiableIfStatement
+        if (id == R.id.action_settings) {
+            return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 
-    /** To choose a new song, simply finish this activity.
-     *  The previous activity is always the ChooseSongActivity.
-     */
-    private void chooseSong() {
-        this.finish();
-    }
-
-    /** To change the sheet music options, start the SettingsActivity.
-     *  Pass the current MidiOptions as a parameter to the Intent.
-     *  Also pass the 'default' MidiOptions as a parameter to the Intent.
-     *  When the SettingsActivity has finished, the onActivityResult()
-     *  method will be called.
-     */
-    private void changeSettings() {
-//        MidiOptions defaultOptions = new MidiOptions(midifile);
-//        Intent intent = new Intent(this, SettingsActivity.class);
-//        intent.putExtra(SettingsActivity.settingsID, options);
-//        intent.putExtra(SettingsActivity.defaultSettingsID, defaultOptions);
-//        startActivityForResult(intent, settingsRequestCode);
-    }
-
-
-    /* Show the "Save As Images" dialog */
-    private void showSaveImagesDialog() {
-//        LayoutInflater inflator = LayoutInflater.from(this);
-//        final View dialogView= inflator.inflate(R.layout.save_images_dialog, null);
-//        final EditText filenameView = (EditText)dialogView.findViewById(R.id.save_images_filename);
-//        filenameView.setText(midifile.getFileName().replace("_", " ") );
-//        AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//        builder.setTitle(R.string.save_images_str);
-//        builder.setView(dialogView);
-//        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//            public void onClick(DialogInterface builder, int whichButton) {
-//                saveAsImages(filenameView.getText().toString());
-//            }
-//        });
-//        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
-//            public void onClick(DialogInterface builder, int whichButton) {
-//            }
-//        });
-//        AlertDialog dialog = builder.create();
-//        dialog.show();
-    }
-
-
-    /* Save the current sheet music as PNG images. */
-    private void saveAsImages(String name) {
-//        String filename = name;
-//        try {
-//            filename = URLEncoder.encode(name, "utf-8");
-//        }
-//        catch (UnsupportedEncodingException e) {
-//        }
-//        if (!options.scrollVert) {
-//            options.scrollVert = true;
-//            createSheetMusic(options);
-//        }
-//        try {
-//            int numpages = sheet.GetTotalPages();
-//            for (int page = 1; page <= numpages; page++) {
-//                Bitmap image= Bitmap.createBitmap(SheetMusic.PageWidth + 40, SheetMusic.PageHeight + 40, Bitmap.Config.ARGB_8888);
-//                Canvas imageCanvas = new Canvas(image);
-//                sheet.DrawPage(imageCanvas, page);
-//                File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/MidiSheetMusic");
-//                File file = new File(path, "" + filename + page + ".png");
-//                path.mkdirs();
-//                OutputStream stream = new FileOutputStream(file);
-//                image.compress(Bitmap.CompressFormat.PNG, 0, stream);
-//                image = null;
-//                stream.close();
-//
-//                // Inform the media scanner about the file
-//                MediaScannerConnection.scanFile(this, new String[]{file.toString()}, null, null);
-//            }
-//        }
-//        catch (IOException e) {
-//            AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//            builder.setMessage("Error saving image to file " + Environment.DIRECTORY_PICTURES + "/MidiSheetMusic/" + filename  + ".png");
-//            builder.setCancelable(false);
-//            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
-//                public void onClick(DialogInterface dialog, int id) {
-//                }
-//            });
-//            AlertDialog alert = builder.create();
-//            alert.show();
-//        }
-    }
-
-
-    /** Show the HTML help screen. */
-    private void showHelp() {
-//        Intent intent = new Intent(this, HelpActivity.class);
-//        startActivity(intent);
-    }
-
-    /** This is the callback when the SettingsActivity is finished.
-     *  Get the modified MidiOptions (passed as a parameter in the Intent).
-     *  Save the MidiOptions.  The key is the CRC checksum of the midi data,
-     *  and the value is a JSON dump of the MidiOptions.
-     *  Finally, re-create the SheetMusic View with the new options.
-     */
-    @Override
-    protected void onActivityResult (int requestCode, int resultCode, Intent intent) {
-//        if (requestCode != settingsRequestCode) {
-//            return;
-//        }
-//        options = (MidiOptions)
-//                intent.getSerializableExtra(SettingsActivity.settingsID);
-//
-//        // Check whether the default instruments have changed.
-//        for (int i = 0; i < options.instruments.length; i++) {
-//            if (options.instruments[i] !=
-//                    midifile.getTracks().get(i).getInstrument()) {
-//                options.useDefaultInstruments = false;
-//            }
-//        }
-//        // Save the options.
-//        SharedPreferences settings = getPreferences(0);
-//        SharedPreferences.Editor editor = settings.edit();
-//        editor.putBoolean("scrollVert", options.scrollVert);
-//        editor.putInt("shade1Color", options.shade1Color);
-//        editor.putInt("shade2Color", options.shade2Color);
-//        String json = options.toJson();
-//        if (json != null) {
-//            editor.putString("" + midiCRC, json);
-//        }
-//        editor.commit();
-//
-//        // Recreate the sheet music with the new options
-//        createSheetMusic(options);
-    }
-
-    /** When this activity resumes, redraw all the views */
-    @Override
-    protected void onResume() {
-        super.onResume();
-//        layout.requestLayout();
-//        player.invalidate();
-//        piano.invalidate();
-//        if (sheet != null) {
-//            sheet.invalidate();
-//        }
-//        layout.requestLayout();
-    }
-
-    /** When this activity pauses, stop the music */
-    @Override
-    protected void onPause() {
-//        if (player != null) {
-//            player.Pause();
-//        }
-        super.onPause();
-    }
-
-
-    private File genTrack() {
-        // 1. Create some MidiTracks
+    public MidiFile genMidiFile(ArrayList<MidiNote> tempnotes) {
         com.leff.midi.MidiTrack tempoTrack = new com.leff.midi.MidiTrack();
         com.leff.midi.MidiTrack noteTrack = new com.leff.midi.MidiTrack();
 
-        // 2. Add events to the tracks
-        // Track 0 is the tempo map
+// 2. Add events to the tracks
+// Track 0 is the tempo map
         com.leff.midi.event.meta.TimeSignature ts = new com.leff.midi.event.meta.TimeSignature();
-        ts.setTimeSignature(4, 4, com.leff.midi.event.meta.TimeSignature.DEFAULT_METER,
-                com.leff.midi.event.meta.TimeSignature.DEFAULT_DIVISION);
+        ts.setTimeSignature(4, 4, 384,
+                128);
 
         Tempo tempo = new Tempo();
-        tempo.setBpm(228);
+        tempo.setBpm(60);
 
-        tempoTrack.insertEvent(ts);
+        //com.leff.midi.event.Controller controllerEvent = new com.leff.midi.event.Controller(0,0,64,127);
+        //tempoTrack.insertEvent(controllerEvent);
         tempoTrack.insertEvent(tempo);
+        tempoTrack.insertEvent(ts);
 
-        // Track 1 will have some notes in it
-        final int NOTE_COUNT = 80;
+// Track 1 will have some notes in it
+        int NOTE_COUNT = tempnotes.size();
 
         for(int i = 0; i < NOTE_COUNT; i++)
         {
-            int channel = 0;
-            int pitch = 1 + i;
-            int velocity = 100;
-            long tick = i * 480;
-            long duration = 120;
+            int channel = 0, velocity = 100;
+            int pitch = tempnotes.get(i).getNumber();
+            int noteStart = tempnotes.get(i).getStartTime();
+            int noteDuration = tempnotes.get(i).getDuration();
+            NoteOn on = new NoteOn(noteStart, channel, pitch , velocity);
+            NoteOff off = new NoteOff(noteStart + noteDuration, channel, pitch, 0);
 
-            noteTrack.insertNote(channel, pitch, velocity, tick, duration);
+            noteTrack.insertEvent(on);
+            noteTrack.insertEvent(off);
+
+            // There is also a utility function for notes that you should use
+            // instead of the above.
+            noteTrack.insertNote(channel, pitch , velocity, noteStart, noteDuration);
         }
 
-        // 3. Create a MidiFile with the tracks we created
-
+// 3. Create a MidiFile with the tracks we created
         ArrayList<com.leff.midi.MidiTrack> tracks = new ArrayList<com.leff.midi.MidiTrack>();
         tracks.add(tempoTrack);
         tracks.add(noteTrack);
 
-        com.leff.midi.MidiFile midi = new com.leff.midi.MidiFile(com.leff.midi.MidiFile.DEFAULT_RESOLUTION,tracks);
+        com.leff.midi.MidiFile midi = new com.leff.midi.MidiFile(96, tracks);
 
-        // 4. Write the MIDI data to a file
-        File output = new File("exampleout.mid");
-//        try
-//        {
-//            midi.writeToFile();
-//        }
-//        catch(IOException e)
-//        {
-//            System.err.println(e);
-//        }
+// 4. Write the MIDI data to a file
+        try
+        {
+            FileOutputStream fos = new FileOutputStream(new File(getExternalFilesDir(null), "exampleout.mid"));
+            midi.writeToFile(fos);
 
-        return output;
-    }
+        }
+        catch(IOException e)
+        {
+            System.err.println(e);
+        }
 
-    private ArrayList<MusicSymbol>
-    CreateSymbols(ArrayList<ChordSymbol> chords, ClefMeasures clefs,
-                  TimeSignature time, int lastStart) {
 
-        ArrayList<MusicSymbol> symbols = new ArrayList<MusicSymbol>();
-        symbols = AddBars(chords, time, lastStart);
-        symbols = AddRests(symbols, time);
+        //convert exampleout.mid to regular midi class obj
+        byte[] data = returnData("exampleout.mid");
+        String title = "asdf";
+        MidiFile tempmidifile = new MidiFile(data,title);
 
-        return symbols;
+        return tempmidifile;
     }
 
 
+    private byte[] returnData(String name) {
+        try {
 
-    /** Add in the vertical bars delimiting measures.
-     *  Also, add the time signature symbols.
-     */
-    private ArrayList<MusicSymbol>
-    AddBars(ArrayList<ChordSymbol> chords, TimeSignature time, int lastStart) {
-        ArrayList<MusicSymbol> symbols = new ArrayList<MusicSymbol>();
+            //FileInputStream in = this.openFileInput(name);
+            FileInputStream in = new FileInputStream(new File(getExternalFilesDir(null), "exampleout.mid"));
 
-        TimeSigSymbol timesig = new TimeSigSymbol(time.getNumerator(), time.getDenominator());
-        symbols.add(timesig);
 
-        /* The starttime of the beginning of the measure */
-        int measuretime = 0;
+            byte[] data = new byte[4096];
+            int total = 0, len = 0;
+            while (true) {
+                len = in.read(data, 0, 4096);
+                if (len > 0)
+                    total += len;
+                else
+                    break;
+            }
+            in.close();
+            data = new byte[total];
+            FileInputStream in1 = new FileInputStream(new File(getExternalFilesDir(null), "exampleout.mid"));
+            int offset = 0;
+            while (offset < total) {
+                len = in1.read(data, offset, total - offset);
+                if (len > 0)
+                    offset += len;
+            }
+            in1.close();
 
-        int i = 0;
-        while (i < chords.size()) {
-            if (measuretime <= chords.get(i).getStartTime()) {
-                symbols.add(new BarSymbol(measuretime) );
-                measuretime += time.getMeasure();
+            return data;
+        }
+        catch (IOException e) {
+            Toast toast = Toast.makeText(this, "CheckFile: " + e.toString(), Toast.LENGTH_LONG);
+            toast.show();
+        }
+        catch (MidiFileException e) {
+            Toast toast = Toast.makeText(this, "CheckFile midi: " + e.toString(), Toast.LENGTH_LONG);
+            toast.show();
+        }
+        Log.d("Drum13", "here bad data");
+        return null;
+    }
+
+    private ArrayList<MidiNote> genNotesMain() {
+        ArrayList<MidiNote> tempnotes = new ArrayList<MidiNote>(12);
+
+        int numNotes=8*2;
+
+        int runningStartTime = 0;
+        for (int i = 0; i < numNotes; i++) {
+
+            MidiNote note = new MidiNote(0,0,0,0);
+            note.setChannel(0);
+            note.setDuration(48);
+            note.setNumber(60);
+            note.setStartTime(runningStartTime);
+
+            //accents
+            int randomNumAccent = 1 + (int)(Math.random() * 8);
+            if (randomNumAccent==1) {
+                note.setAccentNum(1);
+            }
+            else if (randomNumAccent==2) {
+                note.setAccentNum(2);
+            }
+            //rolls
+            int randomNumRoll = 1 + (int)(Math.random() * 50);
+            if (randomNumRoll<6) { //10%
+                note.setRollNum(1);
+            }
+            else if (randomNumRoll<9) { //6%
+                note.setRollNum(2);
+            }
+            else if (randomNumRoll==10) { //2%
+                note.setRollNum(3);
+            }
+
+            //flams
+            int randomNumFlam = 1 + (int)(Math.random() * 5);
+            if (randomNumFlam==1) {
+                note.setFlamNum(1);
+            }
+
+            //notes
+            int randomNum = 1 + (int)(Math.random() * 4);
+            if (randomNum < 4) {
+                runningStartTime += 48;
             }
             else {
-                symbols.add(chords.get(i));
-                i++;
+                runningStartTime += 96;
             }
+            tempnotes.add(note);
         }
 
-        /* Keep adding bars until the last StartTime (the end of the song) */
-        while (measuretime < lastStart) {
-            symbols.add(new BarSymbol(measuretime) );
-            measuretime += time.getMeasure();
-        }
-
-        /* Add the final vertical bar to the last measure */
-        symbols.add(new BarSymbol(measuretime));
-        return symbols;
-    }
-
-    /** Add rest symbols between notes.  All times below are
-     * measured in pulses.
-     */
-    private
-    ArrayList<MusicSymbol> AddRests(ArrayList<MusicSymbol> symbols, TimeSignature time) {
-        int prevtime = 0;
-
-        ArrayList<MusicSymbol> result = new ArrayList<MusicSymbol>( symbols.size() );
-
-        for (MusicSymbol symbol : symbols) {
-            int starttime = symbol.getStartTime();
-            RestSymbol[] rests = GetRests(time, prevtime, starttime);
-            if (rests != null) {
-                for (RestSymbol r : rests) {
-                    result.add(r);
-                }
-            }
-
-            result.add(symbol);
-
-            /* Set prevtime to the end time of the last note/symbol. */
-            if (symbol instanceof ChordSymbol) {
-                ChordSymbol chord = (ChordSymbol)symbol;
-                prevtime = Math.max( chord.getEndTime(), prevtime );
-            }
-            else {
-                prevtime = Math.max(starttime, prevtime);
-            }
-        }
-        return result;
-    }
-
-    /** Return the rest symbols needed to fill the time interval between
-     * start and end.  If no rests are needed, return nil.
-     */
-    private
-    RestSymbol[] GetRests(TimeSignature time, int start, int end) {
-        RestSymbol[] result;
-        RestSymbol r1, r2;
-
-        if (end - start < 0)
-            return null;
-
-        NoteDuration dur = time.GetNoteDuration(end - start);
-        switch (dur) {
-            case Whole:
-            case Half:
-            case Quarter:
-            case Eighth:
-                r1 = new RestSymbol(start, dur);
-                result = new RestSymbol[]{ r1 };
-                return result;
-
-            case DottedHalf:
-                r1 = new RestSymbol(start, NoteDuration.Half);
-                r2 = new RestSymbol(start + time.getQuarter()*2,
-                        NoteDuration.Quarter);
-                result = new RestSymbol[]{ r1, r2 };
-                return result;
-
-            case DottedQuarter:
-                r1 = new RestSymbol(start, NoteDuration.Quarter);
-                r2 = new RestSymbol(start + time.getQuarter(),
-                        NoteDuration.Eighth);
-                result = new RestSymbol[]{ r1, r2 };
-                return result;
-
-            case DottedEighth:
-                r1 = new RestSymbol(start, NoteDuration.Eighth);
-                r2 = new RestSymbol(start + time.getQuarter()/2,
-                        NoteDuration.Sixteenth);
-                result = new RestSymbol[]{ r1, r2 };
-                return result;
-
-            default:
-                return null;
-        }
+        notes=tempnotes;
+        return tempnotes;
     }
 
 
-    /** Create the chord symbols for a single track.
-     * @param midinotes  The Midinotes in the track.
-     * @param key        The Key Signature, for determining sharps/flats.
-     * @param time       The Time Signature, for determining the measures.
-     * @param clefs      The clefs to use for each measure.
-     * @ret An array of ChordSymbols
-     */
-    private
-    ArrayList<ChordSymbol> CreateChords(ArrayList<MidiNote> midinotes,
-                                        KeySignature key,
-                                        TimeSignature time,
-                                        ClefMeasures clefs) {
 
-        int i = 0;
-        ArrayList<ChordSymbol> chords = new ArrayList<ChordSymbol>();
-        ArrayList<MidiNote> notegroup = new ArrayList<MidiNote>(12);
-        int len = midinotes.size();
-
-        while (i < len) {
-
-            int starttime = midinotes.get(i).getStartTime();
-            Clef clef = clefs.GetClef(starttime);
-
-            /* Group all the midi notes with the same start time
-             * into the notes list.
-             */
-            notegroup.clear();
-            notegroup.add(midinotes.get(i));
-            i++;
-            while (i < len && midinotes.get(i).getStartTime() == starttime) {
-                notegroup.add(midinotes.get(i));
-                i++;
-            }
-
-            /* Create a single chord from the group of midi notes with
-             * the same start time.
-             */
-            ChordSymbol chord = new ChordSymbol(notegroup, key, time, clef, sheet);
-            chords.add(chord);
+    //this function returns data from the internal storage with information about the settings
+    //this is also defined where the settings flags are needed
+    public String[] readSettingsDataInternal() {
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0"};
+        try {
+            FileInputStream fin = openFileInput(filename);
+            ObjectInputStream ois = new ObjectInputStream(fin);
+            settingsOut = (String[]) ois.readObject();
+            ois.close();
+            fin.close();
         }
-
-        return chords;
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return settingsOut;
     }
 
+    public boolean fileExistance(String fname){
+        File file = getBaseContext().getFileStreamPath(fname);
+        return file.exists();
+    }
 
 }
-

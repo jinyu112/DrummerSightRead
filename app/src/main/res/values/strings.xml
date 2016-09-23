@@ -4,4 +4,6 @@
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
     <string name="sightreaderact">Sight Reader</string>
+    <string name="title">Drummer Sight Reading Practice</string>
+    <string name="settings">Settings</string>
 </resources>
