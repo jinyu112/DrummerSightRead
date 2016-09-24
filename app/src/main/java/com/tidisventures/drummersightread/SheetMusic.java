@@ -62,6 +62,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     private String   filename;        /** The midi filename */
     private int      numtracks;       /** The number of tracks */
     private float    zoom;            /** The zoom level to draw at (1.0 == 100%) */
+    private float zoomFact;
     private boolean  scrollVert;      /** Whether to scroll vertically or horizontally */
     private int      showNoteLetters; /** Display the note letters */
     private int[]    NoteColors;      /** The note colors to use */
@@ -113,6 +114,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         screenheight = activity.getWindowManager().getDefaultDisplay().getHeight();
         playerHeight = MidiPlayer.getPreferredSize(screenwidth, screenheight).y;
         scrollTimer = new Handler();
+        zoomFact= 1.0f;
     }
 
     /** Create a new SheetMusic View.
@@ -129,6 +131,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     public void init2(MidiOptions options) {
 
         zoom = 1.0f;
+
 
         filename = "temp";
         SetColors(null, options.shade1Color, options.shade2Color);
@@ -275,10 +278,9 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                 zoom = 0.75f;
             if (zoom > 1.1)
                 zoom = 1.1f;
-
         }
 
-        //zoom = 0.75f;
+        zoom = zoom*zoomFact;
 
         if (bufferCanvas == null) {
             createBufferCanvas();
@@ -1596,5 +1598,9 @@ public TimeSignature getTime() {return returnedTime;}
 public void setNotes(ArrayList<MidiNote> notes_in) {this.notes=notes_in;}
 
 public void setLastStartJin(int lastStart_in) {this.lastStartJin=lastStart_in;}
+
+public void setZoom(float in) {
+    this.zoomFact = in;
+}
 }
 

@@ -3,8 +3,10 @@ package com.tidisventures.drummersightread;
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.Spinner;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -16,12 +18,13 @@ import java.io.ObjectOutputStream;
 public class Settings extends ActionBarActivity {
 
     private String filename = "mySettings";
-    static private CheckBox cb_met;
-    static private CheckBox cb_sync;
-    static private CheckBox cb_accnt;
-    static private CheckBox cb_roll;
-    static private CheckBox cb_flam;
-    static private CheckBox cb_scroll;
+    private static CheckBox cb_met;
+    private static CheckBox cb_sync;
+    private static CheckBox cb_accnt;
+    private static CheckBox cb_roll;
+    private static CheckBox cb_flam;
+    private static CheckBox cb_scroll;
+    private static  Spinner spinner;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -33,6 +36,15 @@ public class Settings extends ActionBarActivity {
         cb_roll = (CheckBox) findViewById(R.id.settings_cbrolls);
         cb_flam = (CheckBox) findViewById(R.id.settings_cbflam);
         cb_scroll = (CheckBox) findViewById(R.id.settings_cbscroll);
+
+        spinner = (Spinner) findViewById(R.id.settings_dpzoom);
+// Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapter = ArrayAdapter.createFromResource(this,
+                R.array.zoomSizes, android.R.layout.simple_spinner_item);
+// Specify the layout to use when the list of choices appears
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+// Apply the adapter to the spinner
+        spinner.setAdapter(adapter);
 
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
@@ -54,7 +66,19 @@ public class Settings extends ActionBarActivity {
             if (settingsOut[5].equals("1")) {
                 cb_scroll.setChecked(true);
             }
+
+            if (settingsOut[6].equals("0")) {
+                spinner.setSelection(0);
+            }
+            else if (settingsOut[6].equals("1")) {
+                spinner.setSelection(1);
+            }
+            else if (settingsOut[6].equals("2")) {
+                spinner.setSelection(2);
+            }
         }
+
+
     }
 
     public void onStop() {
@@ -66,7 +90,7 @@ public class Settings extends ActionBarActivity {
         boolean checked_flam = cb_flam.isChecked();
         boolean checked_scroll = cb_scroll.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
@@ -96,6 +120,16 @@ public class Settings extends ActionBarActivity {
             settingsInput[5] = "1"; //scrolling
         }
         else settingsInput[5] = "0";
+
+        if (spinner.getSelectedItemPosition()==0) {
+            settingsInput[6] = "0";
+        }
+        else if (spinner.getSelectedItemPosition()==1) {
+            settingsInput[6] = "1";
+        }
+        else if (spinner.getSelectedItemPosition()==2) {
+            settingsInput[6] = "2";
+        }
 
         saveTimeDataInternal(settingsInput);
     }
@@ -133,7 +167,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);

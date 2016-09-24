@@ -6,4 +6,10 @@
     <string name="sightreaderact">Sight Reader</string>
     <string name="title">Drummer Sight Reading Practice</string>
     <string name="settings">Settings</string>
+
+    <string-array name="zoomSizes">
+        <item>Small</item>
+        <item>Normal</item>
+        <item>Large</item>
+    </string-array>
 </resources>

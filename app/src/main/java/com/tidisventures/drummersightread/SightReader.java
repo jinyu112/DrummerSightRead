@@ -55,6 +55,7 @@ public class SightReader extends ActionBarActivity {
     public static final int settingsRequestCode = 1;
     private String filename = "mySettings";
     private static boolean scrollVert;
+    private static int zoomSetting;
 
     private MidiPlayer player;   /* The play/stop/rewind toolbar */
     private ArrayList<MidiNote> notes;
@@ -107,6 +108,17 @@ public class SightReader extends ActionBarActivity {
                  scrollVert = true;//scrolling is vertical (defaults to horizontal)
             }
             else scrollVert = false;
+
+            zoomSetting = 1;
+            if (settingsOut[6].equals("0")) {
+                zoomSetting = 0;
+            }
+            else if (settingsOut[6].equals("1")) {
+                zoomSetting = 1;
+            }
+            else if (settingsOut[6].equals("2")) {
+                zoomSetting = 2;
+            }
         }
 
         ClefSymbol.LoadImages(this);
@@ -193,6 +205,16 @@ public class SightReader extends ActionBarActivity {
 
         sheet.setNotes(notes);
         sheet.setLastStartJin(lastStartJin);
+        if (zoomSetting==0) {
+            sheet.setZoom(0.5f);
+        }
+        else if (zoomSetting==1) {
+            sheet.setZoom(0.75f);
+        }
+        else if (zoomSetting==2) {
+            sheet.setZoom(1.0f);
+        }
+
         sheet.init2(options);
 
 
