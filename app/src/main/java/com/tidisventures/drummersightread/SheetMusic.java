@@ -141,7 +141,8 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
 
         // SetNoteSize(options.largeNoteSize);
-        scrollVert = options.scrollVert;
+        scrollVert = options.scrollVert; //if this is true, the music scrolls vertically
+        //scrollVert = true;
         showNoteLetters = options.showNoteLetters;
         //TimeSignature time = file.getTime();
         TimeSignature time = new TimeSignature(4,4,96,1000000);
@@ -159,7 +160,6 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
         mainkey = new KeySignature(0,0);
         numtracks = tracks.size();
-        Log.d("Drum11","numtracks: " + numtracks);
 
         //int lastStart = file.EndTime() + options.shifttime; //options.shifttime is always zero??
         int lastStart = 0;
@@ -177,7 +177,6 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
         for (int tracknum = 0; tracknum < numtracks; tracknum++) {
             MidiTrack track = tracks.get(tracknum);
-            Log.d("Drum11","starttttttt"  +track.getNotes().get(0).getStartTime() );
             ClefMeasures clefs = new ClefMeasures(track.getNotes(), time.getMeasure());
             ArrayList<ChordSymbol> chords = CreateChords(track.getNotes(), mainkey, time, clefs);
             allsymbols.add(CreateSymbols(chords, clefs, time, lastStart));
@@ -204,6 +203,8 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         for (Staff staff : staffs) {
             staff.CalculateHeight();
         }
+
+
         zoom = 1.0f;
     }
 
@@ -274,10 +275,20 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                 zoom = 0.75f;
             if (zoom > 1.1)
                 zoom = 1.1f;
+
         }
+
+        //zoom = 0.75f;
+
         if (bufferCanvas == null) {
             createBufferCanvas();
         }
+
+        // following if statement is for issue 17 (center notes for horizontal scrolling and disable the vertical movement of notes on touch)
+        if (!scrollVert) {
+            scrollY = (int) (sheetheight*zoom)/2 - viewheight/2;
+        }
+
         callOnDraw();
     }
 
@@ -322,10 +333,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         i=0;
 
         while (i < len) {
-            Log.d("Drum1", "i: " + i);
             int starttime = midinotes.get(i).getStartTime();
-            Log.d("Drum1", "starttime 7: " + midinotes.get(2).getStartTime());
-            Log.d("Drum1", starttime + "!");
 
             Clef clef = clefs.GetClef(starttime);
 
@@ -969,12 +977,12 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         if (scrollVert) {
             bufferBitmap = Bitmap.createBitmap(viewwidth,
                     (viewheight + playerHeight) * 2,
-                    Bitmap.Config.ARGB_8888);
+                    Bitmap.Config.ARGB_8888); //actual thing being drawn on
         }
         else {
             bufferBitmap = Bitmap.createBitmap(viewwidth * 2,
                     (viewheight + playerHeight) * 2,
-                    Bitmap.Config.ARGB_8888);
+                    Bitmap.Config.ARGB_8888); //actual thing being drawn on
         }
 
         bufferCanvas = new Canvas(bufferBitmap);
@@ -1323,6 +1331,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
      * to the shaded notes. Update the scrollX/scrollY fields.
      */
     void ScrollToShadedNotes(int x_shade, int y_shade, boolean scrollGradually) {
+
         if (scrollVert) {
             int scrollDist = (int)(y_shade - scrollY);
 
@@ -1361,19 +1370,29 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         int scrollwidth = (int)(sheetwidth * zoom);
         int scrollheight = (int)(sheetheight * zoom);
 
-        if (scrollX < 0) {
-            scrollX = 0;
-        }
-        if (scrollX > scrollwidth - viewwidth/2) {
-            scrollX = scrollwidth - viewwidth/2;
+        // this following if statement prevents the horizontal shift of notes on touch
+        if (!scrollVert) {
+            if (scrollX < 0) {
+                scrollX = 0;
+            }
+
+            if (scrollX > scrollwidth - viewwidth / 2) {
+                scrollX = scrollwidth - viewwidth / 2;
+            }
         }
 
-        if (scrollY < 0) {
-            scrollY = 0;
+        // following if statement is for issue 17 (center notes for horizontal scrolling and disable the vertical shift of notes on touch)
+        if (scrollVert) {
+            if (scrollY < 0) {
+                scrollY = 0;
+            }
+
+            if (scrollY > scrollheight - viewheight / 2) {
+                scrollY = scrollheight - viewheight / 2; // this line causes the notes to jump to the center if user touches screen
+                // and zoom is 0.5f
+            }
         }
-        if (scrollY > scrollheight - viewheight/2) {
-            scrollY = scrollheight - viewheight/2;
-        }
+
     }
 
 
@@ -1399,6 +1418,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                 inMotion = true;
                 startMotionX = (int)event.getX();
                 startMotionY = (int)event.getY();
+
                 return true;
             case MotionEvent.ACTION_MOVE:
                 if (!inMotion)
@@ -1415,13 +1435,15 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                     scrollX += (int)deltaX;
                     if ((Math.abs(deltaY) > Math.abs(deltaX)) ||
                             (Math.abs(deltaY) > 4)) {
-                        scrollY += (int)deltaY;
+                        // following commented statement is for issue 17 (center notes for horizontal scrolling and disable the vertical shift of notes on touch)
+                        //scrollY += (int)deltaY; //commenting this out disables the vertical scrolling by the user
                     }
 
                 }
                 checkScrollBounds();
                 lastMotionTime = AnimationUtils.currentAnimationTimeMillis();
                 callOnDraw();
+
                 return true;
 
             case MotionEvent.ACTION_UP:
