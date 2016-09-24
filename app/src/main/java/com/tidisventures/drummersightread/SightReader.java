@@ -227,6 +227,7 @@ public class SightReader extends ActionBarActivity {
 
         //player.SetMidiFile(midifile, options, sheet);
         player.SetMidiFile(midifile, options, sheet);
+        sheet.setPlayer(player);
 
         layout.requestLayout();
         sheet.callOnDraw();
@@ -440,6 +441,12 @@ public class SightReader extends ActionBarActivity {
     public boolean fileExistance(String fname){
         File file = getBaseContext().getFileStreamPath(fname);
         return file.exists();
+    }
+
+    @Override
+    public void onStop() {
+        super.onStop();
+        sheet.stopMusic();
     }
 
 }

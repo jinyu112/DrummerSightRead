@@ -445,6 +445,14 @@ public class MidiPlayer extends LinearLayout {
         player.reset();
     }
 
+    /** Stop playing the MIDI music */
+    public void setStopSound() {
+        if (player == null)
+            return;
+        player.stop();
+        player.reset();
+    }
+
 
     /** The callback for the play button.
      *  If we're stopped or pause, then play the midi file.

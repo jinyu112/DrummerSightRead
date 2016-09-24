@@ -46,6 +46,9 @@ public class Settings extends ActionBarActivity {
 // Apply the adapter to the spinner
         spinner.setAdapter(adapter);
 
+        //default to normal zoom
+        spinner.setSelection(1);
+
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
             if (settingsOut[0].equals("1")) {
@@ -81,6 +84,7 @@ public class Settings extends ActionBarActivity {
 
     }
 
+    @Override
     public void onStop() {
         super.onStop();
         boolean checked_met = cb_met.isChecked();

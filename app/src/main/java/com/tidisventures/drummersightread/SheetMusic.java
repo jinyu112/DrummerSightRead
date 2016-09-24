@@ -1545,10 +1545,6 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
 
 
-
-
-
-
 //this functions were defined by jin
     private ArrayList<MidiTrack> genTrack() {
         ArrayList<MidiTrack> generated_tracks = new ArrayList<MidiTrack>(1);
@@ -1601,6 +1597,11 @@ public void setLastStartJin(int lastStart_in) {this.lastStartJin=lastStart_in;}
 
 public void setZoom(float in) {
     this.zoomFact = in;
+}
+
+public void stopMusic() {
+    if (player==null) return;
+    player.setStopSound();
 }
 }
 
