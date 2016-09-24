@@ -362,4 +362,8 @@ public class MidiOptions implements Serializable {
         options.largeNoteSize = largeNoteSize;
         return options;
     }
+
+    public void setScrollVert(boolean in) {
+        this.scrollVert = in;
+    }
 }

@@ -54,6 +54,7 @@ public class SightReader extends ActionBarActivity {
     public static final String MidiTitleID = "MidiTitleID";
     public static final int settingsRequestCode = 1;
     private String filename = "mySettings";
+    private static boolean scrollVert;
 
     private MidiPlayer player;   /* The play/stop/rewind toolbar */
     private ArrayList<MidiNote> notes;
@@ -102,6 +103,10 @@ public class SightReader extends ActionBarActivity {
             if (settingsOut[4].equals("1")) {
                 Log.d("Drumm16", "flams on"); //flams
             }
+            if (settingsOut[5].equals("1")) {
+                 scrollVert = true;//scrolling is vertical (defaults to horizontal)
+            }
+            else scrollVert = false;
         }
 
         ClefSymbol.LoadImages(this);
@@ -128,8 +133,13 @@ public class SightReader extends ActionBarActivity {
 //        crc.update(data);
 //        midiCRC = crc.getValue();
         SharedPreferences settings = getPreferences(0);
-        options.scrollVert = settings.getBoolean("scrollVert", false);
-        options.shade1Color = settings.getInt("shade1Color", options.shade1Color);
+        if (scrollVert) {
+            options.setScrollVert(true);
+        } else {
+            options.setScrollVert(false);
+        }
+
+            options.shade1Color = settings.getInt("shade1Color", options.shade1Color);
         options.shade2Color = settings.getInt("shade2Color", options.shade2Color);
 //        String json = settings.getString("" + midiCRC, null);
 //        MidiOptions savedOptions = MidiOptions.fromJson(json);
@@ -391,7 +401,7 @@ public class SightReader extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);

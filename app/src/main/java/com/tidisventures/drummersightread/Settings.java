@@ -21,6 +21,7 @@ public class Settings extends ActionBarActivity {
     static private CheckBox cb_accnt;
     static private CheckBox cb_roll;
     static private CheckBox cb_flam;
+    static private CheckBox cb_scroll;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -31,6 +32,7 @@ public class Settings extends ActionBarActivity {
         cb_accnt = (CheckBox) findViewById(R.id.settings_cbaccents);
         cb_roll = (CheckBox) findViewById(R.id.settings_cbrolls);
         cb_flam = (CheckBox) findViewById(R.id.settings_cbflam);
+        cb_scroll = (CheckBox) findViewById(R.id.settings_cbscroll);
 
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
@@ -49,6 +51,9 @@ public class Settings extends ActionBarActivity {
             if (settingsOut[4].equals("1")) {
                 cb_flam.setChecked(true);
             }
+            if (settingsOut[5].equals("1")) {
+                cb_scroll.setChecked(true);
+            }
         }
     }
 
@@ -59,8 +64,9 @@ public class Settings extends ActionBarActivity {
         boolean checked_accnt = cb_accnt.isChecked();
         boolean checked_roll = cb_roll.isChecked();
         boolean checked_flam = cb_flam.isChecked();
+        boolean checked_scroll = cb_scroll.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
@@ -85,6 +91,11 @@ public class Settings extends ActionBarActivity {
             settingsInput[4] = "1"; //flams
         }
         else settingsInput[4] = "0";
+
+        if (checked_scroll) {
+            settingsInput[5] = "1"; //scrolling
+        }
+        else settingsInput[5] = "0";
 
         saveTimeDataInternal(settingsInput);
     }
@@ -122,7 +133,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);
