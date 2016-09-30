@@ -367,7 +367,7 @@ public class SightReader extends ActionBarActivity {
     private ArrayList<MidiNote> genNotesMain() {
         ArrayList<MidiNote> tempnotes = new ArrayList<MidiNote>(12);
 
-        int numNotes=8*3;
+        int numNotes=8*4;
 
         int runningStartTime = 0;
         for (int i = 0; i < numNotes; i++) {

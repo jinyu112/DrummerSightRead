@@ -8,6 +8,8 @@ import android.graphics.BitmapFactory;
 import android.graphics.Color;
 import android.graphics.Point;
 import android.media.MediaPlayer;
+import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
 import android.util.Log;
@@ -82,7 +84,6 @@ public class MidiPlayer extends LinearLayout {
     MidiOptions options;        /** The sound options for playing the midi file */
     double pulsesPerMsec;       /** The number of pulses per millisec */
     SheetMusic sheet;           /** The sheet music to shade while playing */
-    //Piano piano;                /** The piano to shade while playing */
     Handler timer;              /** Timer used to update the sheet music while playing */
     long startTime;             /** Absolute time when music started playing (msec) */
     double startPulseTime;      /** Time (in pulses) when music started playing */
@@ -90,6 +91,13 @@ public class MidiPlayer extends LinearLayout {
     double prevPulseTime;       /** Time (in pulses) music was last at */
     Context context;            /** The context, for writing midi files */
 
+
+    private short bpm = 60;
+    private short noteValue = 4;
+    private short beats = 4;
+    private MetronomeAsyncTask metroTask;
+    private double beatSound = 2440;
+    private double sound = 6440;
 
     /** Load the play/pause/stop button images */
     public static void LoadImages(Context context) {
@@ -131,9 +139,14 @@ public class MidiPlayer extends LinearLayout {
         player = new MediaPlayer();
         setBackgroundColor(Color.BLACK);
 
-
+        metroTask = new MetronomeAsyncTask();
+        Beats beat = Beats.four;
+        metroTask.setBpm(bpm);
+        metroTask.setBeat(beat.getNum());
 
     }
+
+
 
     /** Get the preferred width/height given the screen width/height */
     public static Point getPreferredSize(int screenwidth, int screenheight) {
@@ -233,7 +246,7 @@ public class MidiPlayer extends LinearLayout {
         speedBar.setProgress(100);
         this.addView(speedBar);
 
-        /* Initialize the timer used for playback, but don't start
+        /* Initialize the timer used for playback, but don't startroundedDelayForCountOff
          * the timer yet (enabled = false).
          */
         timer = new Handler();
@@ -330,7 +343,6 @@ public class MidiPlayer extends LinearLayout {
             Stop();
             midifile = file;
             options = opt;
-            //pulsesPerMsec = 96 * (1000.0 / options.tempo);
             sheet = s;
         }
     }
@@ -371,11 +383,9 @@ public class MidiPlayer extends LinearLayout {
         pulsesPerMsec = midifile.getTime().getQuarter() * (1000.0 / options.tempo);
 
         try {
-            ///FileOutputStream dest = context.openFileOutput(tempSoundFile, Context.MODE_PRIVATE);
             FileOutputStream dest = new FileOutputStream(new File(context.getExternalFilesDir(null), tempSoundFile));
             midifile.ChangeSound(dest, options);
             dest.close();
-            //checkFile(tempSoundFile);
         }
         catch (IOException e) {
             Toast toast = Toast.makeText(context, "Error: Unable to create MIDI file for playing.", Toast.LENGTH_LONG);
@@ -423,13 +433,13 @@ public class MidiPlayer extends LinearLayout {
         if (player == null)
             return;
         try {
-            //FileInputStream input = context.openFileInput(filename);
             FileInputStream input = new FileInputStream(new File(context.getExternalFilesDir(null), filename));
             player.reset();
             player.setDataSource(input.getFD());
             input.close();
             player.prepare();
             player.start();
+
         }
         catch (IOException e) {
             Toast toast = Toast.makeText(context, "Error: Unable to play MIDI sound", Toast.LENGTH_LONG);
@@ -445,12 +455,14 @@ public class MidiPlayer extends LinearLayout {
         player.reset();
     }
 
-    /** Stop playing the MIDI music */
+    /** Stop playing the MIDI music when the stop button is pressed */
     public void setStopSound() {
         if (player == null)
             return;
         player.stop();
         player.reset();
+        metroTask.stop();
+        Runtime.getRuntime().gc();
     }
 
 
@@ -464,20 +476,32 @@ public class MidiPlayer extends LinearLayout {
         else if (playstate == initStop || playstate == initPause || playstate == playing) {
             return;
         }
-//        if (sheet == null || numberTracks() == 0) {
-//            return;
-//        }
-//        else if (playstate == initStop || playstate == initPause || playstate == playing) {
-//            Log.d("Drum11","playstate is initstop, initpause, or playing");
-//            return;
-//        }
+        if (sheet == null || numberTracks() == 0) {
+            return;
+        }
+        else if (playstate == initStop || playstate == initPause || playstate == playing) {
+            return;
+        }
         // playstate is stopped or paused
+
+        // My AsyncTask is currently not doing work in doInBackground()
+        if(metroTask.getStatus() != AsyncTask.Status.RUNNING) { //this if statement was put in because on rapid pressing of the stop/start buttons while playing, the async task was executed while it was already running
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+                metroTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+            else
+                metroTask.execute();
+        }
 
         // Hide the midi player, wait a little for the view
         // to refresh, and then start playing
-        //this.setVisibility(View.GONE);
         timer.removeCallbacks(TimerCallback);
-        timer.postDelayed(DoPlay, 1000);
+
+        //convert bpm to number of milliseconds equivalent to one measure for starting count of metronome
+        // this will need to be updated to remove the hardcoded beatspermeasure and instead use what is specified by user
+        int beatsPerMeasure = 4;
+        double delayForCountOff = (double) 1/((double) bpm/(60*1000*beatsPerMeasure));
+        int roundedDelayForCountOff = (int) Math.round(delayForCountOff);
+        timer.postDelayed(DoPlay, roundedDelayForCountOff);
     }
 
     Runnable DoPlay = new Runnable() {
@@ -488,20 +512,8 @@ public class MidiPlayer extends LinearLayout {
         /* The startPulseTime is the pulse time of the midi file when
          * we first start playing the music.  It's used during shading.
          */
-//            if (options.playMeasuresInLoop) {
-//            /* If we're playing measures in a loop, make sure the
-//             * currentPulseTime is somewhere inside the loop measures.
-//             */
-//                int measure = (int)(currentPulseTime / midifile.getTime().getMeasure());
-//                if ((measure < options.playMeasuresInLoopStart) ||
-//                        (measure > options.playMeasuresInLoopEnd)) {
-//                    currentPulseTime = options.playMeasuresInLoopStart * midifile.getTime().getMeasure();
-//                }
-//                startPulseTime = currentPulseTime;
-//                options.pauseTime = (int)(currentPulseTime - options.shifttime);
-//            }
-//            else
             if (playstate == paused) {
+                 
                 startPulseTime = currentPulseTime;
                 options.pauseTime = (int)(currentPulseTime - options.shifttime);
             }
@@ -509,22 +521,20 @@ public class MidiPlayer extends LinearLayout {
                 options.pauseTime = 0;
                 startPulseTime = options.shifttime;
                 currentPulseTime = options.shifttime;
-                //prevPulseTime = options.shifttime - 96; //hardcoded jin 8/25/16
                 prevPulseTime = options.shifttime - midifile.getTime().getQuarter();
 
             }
 
             CreateMidiFile();
             playstate = playing;
-            PlaySound(tempSoundFile);
+            //PlaySound(tempSoundFile);
             startTime = SystemClock.uptimeMillis();
 
             timer.removeCallbacks(TimerCallback);
             timer.removeCallbacks(ReShade);
             timer.postDelayed(TimerCallback, 100);
+            sheet.ShadeNotes((int) currentPulseTime, (int) prevPulseTime, true);
 
-            sheet.ShadeNotes((int)currentPulseTime, (int)prevPulseTime, true);
-            //piano.ShadeNotes((int)currentPulseTime, (int)prevPulseTime);
             return;
         }
     };
@@ -548,9 +558,12 @@ public class MidiPlayer extends LinearLayout {
             return;
         }
         else if (playstate == playing) {
+             
             playstate = initPause;
             return;
         }
+
+
     }
 
 
@@ -561,15 +574,18 @@ public class MidiPlayer extends LinearLayout {
     void Stop() {
         this.setVisibility(View.VISIBLE);
         if ( sheet == null || playstate == stopped) {
+             
             return;
         }
 
         if (playstate == initPause || playstate == initStop || playstate == playing) {
             /* Wait for timer to finish */
             playstate = initStop;
+             
             DoStop();
         }
         else if (playstate == paused) {
+             
             DoStop();
         }
     }
@@ -582,12 +598,11 @@ public class MidiPlayer extends LinearLayout {
         timer.removeCallbacks(TimerCallback);
         sheet.ShadeNotes(-10, (int)prevPulseTime, false);
         sheet.ShadeNotes(-10, (int)currentPulseTime, false);
-        //piano.ShadeNotes(-10, (int)prevPulseTime);
-        //piano.ShadeNotes(-10, (int)currentPulseTime);
         startPulseTime = 0;
         currentPulseTime = 0;
         prevPulseTime = 0;
         setVisibility(View.VISIBLE);
+        stopMetronome();
         StopSound();
     }
 
@@ -604,16 +619,13 @@ public class MidiPlayer extends LinearLayout {
 
         /* Remove any highlighted notes */
         sheet.ShadeNotes(-10, (int)currentPulseTime, false);
-        //piano.ShadeNotes(-10, (int)currentPulseTime);
 
         prevPulseTime = currentPulseTime;
         currentPulseTime -= midifile.getTime().getMeasure();
-        //currentPulseTime -= 96*4;//hardcoded jin 8/25/16
         if (currentPulseTime < options.shifttime) {
             currentPulseTime = options.shifttime;
         }
-        sheet.ShadeNotes((int)currentPulseTime, (int)prevPulseTime, false);
-        //piano.ShadeNotes((int)currentPulseTime, (int)prevPulseTime);
+        sheet.ShadeNotes((int) currentPulseTime, (int) prevPulseTime, false);
     }
 
     /** Fast forward the midi music by one measure.
@@ -632,19 +644,15 @@ public class MidiPlayer extends LinearLayout {
         playstate = paused;
 
         /* Remove any highlighted notes */
-        sheet.ShadeNotes(-10, (int)currentPulseTime, false);
-        //piano.ShadeNotes(-10, (int)currentPulseTime);
+        sheet.ShadeNotes(-10, (int) currentPulseTime, false);
 
         prevPulseTime = currentPulseTime;
         currentPulseTime += midifile.getTime().getMeasure();
-        //currentPulseTime += 96*4;//hardcoded jin 8/25/16
         if (currentPulseTime > midifile.getTotalPulses()) {
-//            currentPulseTime -= 96*4; //hardcoded jin 8/52/16
-            currentPulseTime -=  midifile.getTime().getMeasure();
+            currentPulseTime -= midifile.getTime().getMeasure();
 
         }
-        sheet.ShadeNotes((int)currentPulseTime, (int)prevPulseTime, false);
-        //piano.ShadeNotes((int)currentPulseTime, (int)prevPulseTime);
+        sheet.ShadeNotes((int) currentPulseTime, (int) prevPulseTime, false);
     }
 
 
@@ -655,27 +663,31 @@ public class MidiPlayer extends LinearLayout {
      */
     Runnable TimerCallback = new Runnable() {
         public void run() {
+
             if (sheet == null) {
+                 
                 playstate = stopped;
                 return;
             }
             else if (playstate == stopped || playstate == paused) {
+                 
             /* This case should never happen */
                 return;
             }
             else if (playstate == initStop) {
+                 
                 return;
             }
             else if (playstate == playing) {
-                //Log.d("Drum11","here4");
+
                 long msec = SystemClock.uptimeMillis() - startTime;
                 prevPulseTime = currentPulseTime;
                 currentPulseTime = startPulseTime + msec * pulsesPerMsec;
 
+
             /* If we're playing in a loop, stop and restart */
                 if (options.playMeasuresInLoop) {
                     double nearEndTime = currentPulseTime + pulsesPerMsec*10;
-                    //int measure = (int)(nearEndTime /(96*4)); //hardcoded jin 8/25/16
                     int measure = (int)(nearEndTime /midifile.getTime().getMeasure()); //hardcoded jin 8/25/16
                     if (measure > options.playMeasuresInLoopEnd) {
                         RestartPlayMeasuresInLoop();
@@ -689,18 +701,20 @@ public class MidiPlayer extends LinearLayout {
                     return;
                 }
                 sheet.ShadeNotes((int)currentPulseTime, (int)prevPulseTime, true);
-                //piano.ShadeNotes((int)currentPulseTime, (int)prevPulseTime);
                 timer.postDelayed(TimerCallback, 100);
+
+
+
+
                 return;
             }
             else if (playstate == initPause) {
                 long msec = SystemClock.uptimeMillis() - startTime;
                 StopSound();
-
+                 
                 prevPulseTime = currentPulseTime;
                 currentPulseTime = startPulseTime + msec * pulsesPerMsec;
                 sheet.ShadeNotes((int)currentPulseTime, (int)prevPulseTime, false);
-                //piano.ShadeNotes((int)currentPulseTime, (int)prevPulseTime);
                 playstate = paused;
                 timer.postDelayed(ReShade, 1000);
                 return;
@@ -715,12 +729,51 @@ public class MidiPlayer extends LinearLayout {
      */
     private void RestartPlayMeasuresInLoop() {
         playstate = stopped;
-        //piano.ShadeNotes(-10, (int)prevPulseTime);
         sheet.ShadeNotes(-10, (int)prevPulseTime, false);
         currentPulseTime = 0;
         prevPulseTime = -1;
         StopSound();
         timer.postDelayed(DoPlay, 300);
+    }
+
+
+    private class MetronomeAsyncTask extends AsyncTask<Void,Void,String> {
+        Metronome metronome;
+
+        MetronomeAsyncTask() {
+            metronome = new Metronome();
+        }
+
+        protected String doInBackground(Void... params) {
+            metronome.setBeat(beats);
+            metronome.setNoteValue(noteValue);
+            metronome.setBpm(bpm);
+            metronome.setBeatSound(beatSound);
+            metronome.setSound(sound);
+            metronome.play();
+            return null;
+        }
+
+        public void stop() {
+            metronome.stop();
+            metronome = null;
+        }
+
+        public void setBpm(short bpm) {
+            metronome.setBpm(bpm);
+            metronome.calcSilence();
+        }
+
+        public void setBeat(short beat) {
+            if(metronome != null)
+                metronome.setBeat(beat);
+        }
+    }
+
+    public void stopMetronome() {
+        metroTask.stop();
+        metroTask = new MetronomeAsyncTask();
+        Runtime.getRuntime().gc();
     }
 
 }
