@@ -55,6 +55,7 @@ import java.io.IOException;
  * SheetMusic.ShadeNotes() is used.  It takes the current 'pulse time',
  * and determines which notes to shade.
  */
+//
 public class MidiPlayer extends LinearLayout {
     static Bitmap rewindImage;   /** The rewind image */
     static Bitmap playImage;     /** The play image */
