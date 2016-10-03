@@ -53,9 +53,6 @@ public class SightReader extends ActionBarActivity {
     public static final String MidiDataID = "MidiDataID";
     public static final String MidiTitleID = "MidiTitleID";
     public static final int settingsRequestCode = 1;
-    private String filename = "mySettings";
-    private static boolean scrollVert;
-    private static int zoomSetting;
 
     private MidiPlayer player;   /* The play/stop/rewind toolbar */
     private ArrayList<MidiNote> notes;
@@ -66,18 +63,11 @@ public class SightReader extends ActionBarActivity {
     private long midiCRC;      /* CRC of the midi bytes */
     private int lastStartJin;
 
-
-    //added by jin 8/26/16 from midifile
-    /* The list of Midi Events */
-    public static final byte EventNoteOff         = (byte)0x80;
-    public static final byte EventNoteOn          = (byte)0x90;
-    public static final byte EventKeyPressure     = (byte)0xA0;
-    public static final byte EventControlChange   = (byte)0xB0;
-    public static final byte EventProgramChange   = (byte)0xC0;
-    public static final byte EventChannelPressure = (byte)0xD0;
-    public static final byte EventPitchBend       = (byte)0xE0;
-    public static final byte SysexEvent1          = (byte)0xF0;
-    public static final byte SysexEvent2          = (byte)0xF7;
+    //from settings
+    private String filename = "mySettings";
+    private static boolean scrollVert;
+    private static int zoomSetting;
+    private static boolean metronomeOn = true;
 
 
     @Override
@@ -90,8 +80,9 @@ public class SightReader extends ActionBarActivity {
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
             if (settingsOut[0].equals("1")) {
-                Log.d("Drumm16","Metrnome on"); //metronome
+                metronomeOn = true;
             }
+            else metronomeOn = false;
             if (settingsOut[1].equals("1")) {
                 Log.d("Drumm16", "syncop on"); //syncopation
             }
@@ -227,6 +218,7 @@ public class SightReader extends ActionBarActivity {
 
         //player.SetMidiFile(midifile, options, sheet);
         player.SetMidiFile(midifile, options, sheet);
+        player.setMetronomeOn(metronomeOn);
         sheet.setPlayer(player);
 
         layout.requestLayout();

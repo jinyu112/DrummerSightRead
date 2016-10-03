@@ -91,13 +91,14 @@ public class MidiPlayer extends LinearLayout {
     double prevPulseTime;       /** Time (in pulses) music was last at */
     Context context;            /** The context, for writing midi files */
 
-
+    //metronome
     private short bpm = 60;
     private short noteValue = 4;
     private short beats = 4;
     private MetronomeAsyncTask metroTask;
     private double beatSound = 2440;
     private double sound = 6440;
+    private boolean metronomeOn = true;
 
     /** Load the play/pause/stop button images */
     public static void LoadImages(Context context) {
@@ -485,7 +486,7 @@ public class MidiPlayer extends LinearLayout {
         // playstate is stopped or paused
 
         // My AsyncTask is currently not doing work in doInBackground()
-        if(metroTask.getStatus() != AsyncTask.Status.RUNNING) { //this if statement was put in because on rapid pressing of the stop/start buttons while playing, the async task was executed while it was already running
+        if(metroTask.getStatus() != AsyncTask.Status.RUNNING && metronomeOn) { //this if statement was put in because on rapid pressing of the stop/start buttons while playing, the async task was executed while it was already running
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
                 metroTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
             else
@@ -501,6 +502,9 @@ public class MidiPlayer extends LinearLayout {
         int beatsPerMeasure = 4;
         double delayForCountOff = (double) 1/((double) bpm/(60*1000*beatsPerMeasure));
         int roundedDelayForCountOff = (int) Math.round(delayForCountOff);
+        if (!metronomeOn) {
+            roundedDelayForCountOff = 100;
+        }
         timer.postDelayed(DoPlay, roundedDelayForCountOff);
     }
 
@@ -745,23 +749,29 @@ public class MidiPlayer extends LinearLayout {
         }
 
         protected String doInBackground(Void... params) {
-            metronome.setBeat(beats);
-            metronome.setNoteValue(noteValue);
-            metronome.setBpm(bpm);
-            metronome.setBeatSound(beatSound);
-            metronome.setSound(sound);
-            metronome.play();
+            if (metronome!=null) {
+                metronome.setBeat(beats);
+                metronome.setNoteValue(noteValue);
+                metronome.setBpm(bpm);
+                metronome.setBeatSound(beatSound);
+                metronome.setSound(sound);
+                metronome.play();
+            }
             return null;
         }
 
         public void stop() {
-            metronome.stop();
-            metronome = null;
+            if (metronome!=null) {
+                metronome.stop();
+                metronome = null;
+            }
         }
 
         public void setBpm(short bpm) {
-            metronome.setBpm(bpm);
-            metronome.calcSilence();
+            if (metronome!=null) {
+                metronome.setBpm(bpm);
+                metronome.calcSilence();
+            }
         }
 
         public void setBeat(short beat) {
@@ -776,6 +786,10 @@ public class MidiPlayer extends LinearLayout {
         Runtime.getRuntime().gc();
     }
 
+
+    public void setMetronomeOn(boolean in) {
+        this.metronomeOn = in;
+    }
 }
 
 
