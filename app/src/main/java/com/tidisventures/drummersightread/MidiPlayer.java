@@ -62,7 +62,6 @@ public class MidiPlayer extends LinearLayout {
     static Bitmap pauseImage;    /** The pause image */
     static Bitmap stopImage;      /** The stop image */
     static Bitmap fastFwdImage;  /** The fast forward image */
-    static Bitmap volumeImage;   /** The volume image */
 
     private ImageButton rewindButton; /** The rewind button */
     private ImageButton playButton;   /** The play/pause button */
@@ -100,6 +99,10 @@ public class MidiPlayer extends LinearLayout {
     private double beatSound = 2440;
     private double sound = 6440;
     private boolean metronomeOn = true;
+    private Beats beat;
+
+    //play sound?
+    private boolean playSoundFlag = false;
 
     /** Load the play/pause/stop button images */
     public static void LoadImages(Context context) {
@@ -142,7 +145,7 @@ public class MidiPlayer extends LinearLayout {
         setBackgroundColor(Color.BLACK);
 
         metroTask = new MetronomeAsyncTask();
-        Beats beat = Beats.four;
+        beat = Beats.four;
         metroTask.setBpm(bpm);
         metroTask.setBeat(beat.getNum());
 
@@ -299,10 +302,6 @@ public class MidiPlayer extends LinearLayout {
 
     }
 
-//    public void SetPiano(Piano p) {
-//        piano = p;
-//    }
-
     /** The MidiFile and/or SheetMusic has changed. Stop any playback sound,
      *  and store the current midifile and sheet music.
      */
@@ -380,7 +379,6 @@ public class MidiPlayer extends LinearLayout {
     private void CreateMidiFile() {
         double inverse_tempo = 1.0 / midifile.getTime().getTempo();
         double inverse_tempo_scaled = inverse_tempo * speedBar.getProgress() / 100.0;
-        // double inverse_tempo_scaled = inverse_tempo * 100.0 / 100.0;
         options.tempo = (int)(1.0 / inverse_tempo_scaled);
         pulsesPerMsec = midifile.getTime().getQuarter() * (1000.0 / options.tempo);
 
@@ -488,10 +486,16 @@ public class MidiPlayer extends LinearLayout {
 
         // My AsyncTask is currently not doing work in doInBackground()
         if(metroTask.getStatus() != AsyncTask.Status.RUNNING && metronomeOn) { //this if statement was put in because on rapid pressing of the stop/start buttons while playing, the async task was executed while it was already running
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB)
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                metroTask.setBeat(beat.getNum());
+                beats = beat.getNum();
                 metroTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
-            else
+            }
+            else {
+                metroTask.setBeat(beat.getNum());
+                beats = beat.getNum();
                 metroTask.execute();
+            }
         }
 
         // Hide the midi player, wait a little for the view
@@ -532,7 +536,9 @@ public class MidiPlayer extends LinearLayout {
 
             CreateMidiFile();
             playstate = playing;
-            //PlaySound(tempSoundFile);
+            if (playSoundFlag) {
+                PlaySound(tempSoundFile);
+            }
             startTime = SystemClock.uptimeMillis();
 
             timer.removeCallbacks(TimerCallback);
@@ -791,6 +797,18 @@ public class MidiPlayer extends LinearLayout {
     public void setMetronomeOn(boolean in) {
         this.metronomeOn = in;
     }
+
+    public void setTempo(short in) {
+        this.bpm = in;
+    }
+
+    public void setBeats(Beats in) {
+        this.beat = in;
+    }
+
+public void setPlaySoundFlag(boolean in) {
+    this.playSoundFlag = in;
+}
 }
 
 

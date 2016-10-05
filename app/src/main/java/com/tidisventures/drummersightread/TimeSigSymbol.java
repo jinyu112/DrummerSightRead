@@ -42,13 +42,13 @@ public class TimeSigSymbol implements MusicSymbol {
         }
         images = new Bitmap[13];
         Resources res = context.getResources();
-//        images[2] = BitmapFactory.decodeResource(res, R.drawable.two);
-//        images[3] = BitmapFactory.decodeResource(res, R.drawable.three);
-//        images[4] = BitmapFactory.decodeResource(res, R.drawable.four);
-//        images[6] = BitmapFactory.decodeResource(res, R.drawable.six);
-//        images[8] = BitmapFactory.decodeResource(res, R.drawable.eight);
-//        images[9] = BitmapFactory.decodeResource(res, R.drawable.nine);
-//        images[12] = BitmapFactory.decodeResource(res, R.drawable.twelve);
+        images[2] = BitmapFactory.decodeResource(res, R.drawable.two);
+        images[3] = BitmapFactory.decodeResource(res, R.drawable.three);
+        images[4] = BitmapFactory.decodeResource(res, R.drawable.four);
+        images[6] = BitmapFactory.decodeResource(res, R.drawable.six);
+        images[8] = BitmapFactory.decodeResource(res, R.drawable.eight);
+        images[9] = BitmapFactory.decodeResource(res, R.drawable.nine);
+        images[12] = BitmapFactory.decodeResource(res, R.drawable.twelve);
     }
 
     /** Get the time (in pulses) this symbol occurs at. */

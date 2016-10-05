@@ -102,6 +102,11 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     private ArrayList<MidiTrack> returnedTracks;
     private TimeSignature returnedTime;
 
+    private int tempoInt = 60;
+    private int timeNum = 4;
+    private int timeDen = 4;
+
+
     public SheetMusic(Context context) {
         super(context);
         SurfaceHolder holder = getHolder();
@@ -141,30 +146,15 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
         ArrayList<MidiTrack> tracks = genTrack();
 
-
-
-        // SetNoteSize(options.largeNoteSize);
         scrollVert = options.scrollVert; //if this is true, the music scrolls vertically
-        //scrollVert = true;
         showNoteLetters = options.showNoteLetters;
-        //TimeSignature time = file.getTime();
-        TimeSignature time = new TimeSignature(4,4,96,1000000);
-        returnedTime = time;
-//        if (options.time != null) {
-//            time = options.time;
-//        }
-//        if (options.key == -1) {
-//            mainkey = GetKeySignature(tracks);
-//        }
-//        else {
-//            mainkey = new KeySignature(options.key);
-//        }
 
+        TimeSignature time = new TimeSignature(timeNum,timeDen,96,convertBPMtoMicrosec(tempoInt));
+        returnedTime = time;
 
         mainkey = new KeySignature(0,0);
         numtracks = tracks.size();
 
-        //int lastStart = file.EndTime() + options.shifttime; //options.shifttime is always zero??
         int lastStart = 0;
 
         lastStart=lastStartJin;
@@ -1600,8 +1590,28 @@ public void setZoom(float in) {
 }
 
 public void stopMusic() {
-    if (player==null) return;
+    //if (player==null) return;
     player.setStopSound();
 }
+
+    private int convertBPMtoMicrosec(int tempo_in) {
+        int microseconds = 1000000;
+        if (tempo_in != 0) {
+            microseconds = (int) Math.round(60000000 / tempo_in);
+        }
+        return microseconds;
+    }
+
+    public void setTempoInt(int in) {
+        this.tempoInt = in;
+    }
+
+    public void setTimeNum(int in) {
+        this.timeNum = in;
+    }
+
+    public void setTimeDen(int in) {
+        this.timeDen = in;
+    }
 }
 

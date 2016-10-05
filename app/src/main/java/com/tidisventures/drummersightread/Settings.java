@@ -2,11 +2,15 @@ package com.tidisventures.drummersightread;
 
 import android.os.Bundle;
 import android.support.v7.app.ActionBarActivity;
+import android.text.InputFilter;
 import android.util.Log;
+import android.view.Gravity;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
+import android.widget.EditText;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -24,7 +28,10 @@ public class Settings extends ActionBarActivity {
     private static CheckBox cb_roll;
     private static CheckBox cb_flam;
     private static CheckBox cb_scroll;
+    private static CheckBox cb_sound;
     private static  Spinner spinner;
+    private static  Spinner spinnerTS;
+    private static EditText evtempo;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -36,6 +43,9 @@ public class Settings extends ActionBarActivity {
         cb_roll = (CheckBox) findViewById(R.id.settings_cbrolls);
         cb_flam = (CheckBox) findViewById(R.id.settings_cbflam);
         cb_scroll = (CheckBox) findViewById(R.id.settings_cbscroll);
+        cb_sound = (CheckBox) findViewById(R.id.settings_cbsound);
+        evtempo = (EditText) findViewById(R.id.settings_evtempo);
+        evtempo.setGravity(Gravity.CENTER);
 
         spinner = (Spinner) findViewById(R.id.settings_dpzoom);
 // Create an ArrayAdapter using the string array and a default spinner layout
@@ -48,6 +58,19 @@ public class Settings extends ActionBarActivity {
 
         //default to normal zoom
         spinner.setSelection(1);
+
+
+        spinnerTS = (Spinner) findViewById(R.id.settings_dpts);
+// Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapterTS = ArrayAdapter.createFromResource(this,
+                R.array.timesig, android.R.layout.simple_spinner_item);
+// Specify the layout to use when the list of choices appears
+        adapterTS.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+// Apply the adapter to the spinner
+        spinnerTS.setAdapter(adapterTS);
+
+        //default to 4/4
+        spinnerTS.setSelection(0);
 
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
@@ -70,6 +93,10 @@ public class Settings extends ActionBarActivity {
                 cb_scroll.setChecked(true);
             }
 
+            if (settingsOut[9].equals("1")) {
+                cb_sound.setChecked(true);
+            }
+
             if (settingsOut[6].equals("0")) {
                 spinner.setSelection(0);
             }
@@ -79,6 +106,36 @@ public class Settings extends ActionBarActivity {
             else if (settingsOut[6].equals("2")) {
                 spinner.setSelection(2);
             }
+
+
+            if (settingsOut[8].equals("4/4")) {
+                spinnerTS.setSelection(0);
+            }
+            else if (settingsOut[8].equals("2/4")) {
+                spinnerTS.setSelection(1);
+            }
+            else if (settingsOut[8].equals("3/4")) {
+                spinnerTS.setSelection(2);
+            }
+            else if (settingsOut[8].equals("3/8")) {
+                spinnerTS.setSelection(3);
+            }
+            else if (settingsOut[8].equals("6/4")) {
+                spinnerTS.setSelection(4);
+            }
+            else if (settingsOut[8].equals("12/8")) {
+                spinnerTS.setSelection(5);
+            }
+            else if (settingsOut[8].equals("6/8")) {
+                spinnerTS.setSelection(6);
+            }
+            else spinnerTS.setSelection(0);
+
+
+            evtempo.setText(settingsOut[7]);
+        }
+        else {
+            evtempo.setText("60");
         }
 
 
@@ -93,8 +150,9 @@ public class Settings extends ActionBarActivity {
         boolean checked_roll = cb_roll.isChecked();
         boolean checked_flam = cb_flam.isChecked();
         boolean checked_scroll = cb_scroll.isChecked();
+        boolean checked_sound = cb_sound.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
@@ -125,6 +183,11 @@ public class Settings extends ActionBarActivity {
         }
         else settingsInput[5] = "0";
 
+        if (checked_sound) {
+            settingsInput[9] = "1"; //sound
+        }
+        else settingsInput[9] = "0";
+
         if (spinner.getSelectedItemPosition()==0) {
             settingsInput[6] = "0";
         }
@@ -134,6 +197,56 @@ public class Settings extends ActionBarActivity {
         else if (spinner.getSelectedItemPosition()==2) {
             settingsInput[6] = "2";
         }
+
+        if (spinnerTS.getSelectedItemPosition()==0) {
+            settingsInput[8] = "4/4";
+        }
+        else if (spinnerTS.getSelectedItemPosition()==1) {
+            settingsInput[8] = "2/4";
+        }
+        else if (spinnerTS.getSelectedItemPosition()==2) {
+            settingsInput[8] = "3/4";
+        }
+        else if (spinnerTS.getSelectedItemPosition()==3) {
+            settingsInput[8] = "3/8";
+        }
+        else if (spinnerTS.getSelectedItemPosition()==4) {
+            settingsInput[8] = "6/4";
+        }
+        else if (spinnerTS.getSelectedItemPosition()==5) {
+            settingsInput[8] = "12/8";
+        }
+        else if (spinnerTS.getSelectedItemPosition()==6) {
+            settingsInput[8] = "6/8";
+        }
+        else  {
+            settingsInput[8] = "4/4";
+        }
+
+
+        String evtempo_str = "0";
+        evtempo_str = evtempo.getText().toString();
+        if (evtempo_str != null) {
+            String temp = evtempo_str;
+            int tempInt = 0;
+            temp = temp.replaceAll("[$,.-]", "");
+            try {
+                tempInt = Integer.parseInt(temp);
+            }catch(Exception e) {tempInt = 60;}
+
+            if(tempInt > 200)  {
+                tempInt = 200;
+                Toast.makeText(this, "Max tempo is 200 beats per minute.",
+                        Toast.LENGTH_SHORT).show();
+            }
+            else if (tempInt < 30) {
+                tempInt = 30;
+                Toast.makeText(this, "Min tempo is 30 beats per minute.",
+                        Toast.LENGTH_SHORT).show();
+            }
+            evtempo_str = String.valueOf(tempInt);
+        }
+        settingsInput[7] = evtempo_str;
 
         saveTimeDataInternal(settingsInput);
     }
@@ -171,7 +284,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);

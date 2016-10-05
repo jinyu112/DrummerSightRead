@@ -1,44 +1,24 @@
 package com.tidisventures.drummersightread;
 
-import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
-import android.content.Intent;
+
 import android.content.SharedPreferences;
-import android.content.res.Configuration;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.Paint;
-import android.media.MediaScannerConnection;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.Menu;
-import android.view.MenuInflater;
 import android.view.MenuItem;
-import android.view.View;
-import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
-
-import com.leff.midi.*;
 import com.leff.midi.event.NoteOff;
 import com.leff.midi.event.NoteOn;
 import com.leff.midi.event.meta.Tempo;
-
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
-import java.io.OutputStream;
-import java.io.UnsupportedEncodingException;
-import java.net.URLEncoder;
 import java.util.ArrayList;
-import java.util.List;
-import java.util.zip.CRC32;
+
 
 /** @class SheetMusicActivity
  *
@@ -68,6 +48,11 @@ public class SightReader extends ActionBarActivity {
     private static boolean scrollVert;
     private static int zoomSetting;
     private static boolean metronomeOn = true;
+    private static int tempoInt = 60;
+    private static int timeNum = 4;
+    private static int timeDen = 4;
+    private static int timeSig = 0; //0 is 4/4, 1 is 2/4, 2 is 3/4, and so on
+    private static boolean playSoundFlag = false;
 
 
     @Override
@@ -100,6 +85,11 @@ public class SightReader extends ActionBarActivity {
             }
             else scrollVert = false;
 
+            if (settingsOut[9].equals("1")) {
+                playSoundFlag = true;//playsound
+            }
+            else playSoundFlag = false;
+
             zoomSetting = 1;
             if (settingsOut[6].equals("0")) {
                 zoomSetting = 0;
@@ -109,6 +99,56 @@ public class SightReader extends ActionBarActivity {
             }
             else if (settingsOut[6].equals("2")) {
                 zoomSetting = 2;
+            }
+
+            if (settingsOut[7] != null) {
+                String temp = settingsOut[7];
+                temp = temp.replaceAll("[$,.-]", "");
+                try {
+                    tempoInt = Integer.parseInt(temp);
+                }catch(Exception e) {tempoInt = 60;}
+            }
+
+
+            if (settingsOut[8].equals("4/4")) {
+                timeNum = 4;
+                timeDen = 4;
+                timeSig = 0;
+            }
+            else if (settingsOut[8].equals("2/4")) {
+                timeNum = 2;
+                timeDen = 4;
+                timeSig = 1;
+            }
+            else if (settingsOut[8].equals("3/4")) {
+                timeNum = 3;
+                timeDen = 4;
+                timeSig = 2;
+            }
+            else if (settingsOut[8].equals("3/8")) {
+                timeNum = 3;
+                timeDen = 8;
+                timeSig = 3;
+            }
+            else if (settingsOut[8].equals("6/4")) {
+                timeNum = 6;
+                timeDen = 4;
+                timeSig = 4;
+            }
+            else if (settingsOut[8].equals("12/8")) {
+                timeNum = 12;
+                timeDen = 8;
+                timeSig = 5;
+            }
+            else if (settingsOut[8].equals("6/8")) {
+                timeNum = 6;
+                timeDen = 8;
+                timeSig = 6;
+            }
+            else {
+                timeNum = 4;
+                timeDen = 4;
+                timeSig = 0;
             }
         }
 
@@ -185,14 +225,9 @@ public class SightReader extends ActionBarActivity {
         if (sheet != null) {
             layout.removeView(sheet);
         }
-//        if (!options.showPiano) {
-//            piano.setVisibility(View.GONE);
-//        }
-//        else {
-//            piano.setVisibility(View.VISIBLE);
-//        }
+
         sheet = new SheetMusic(this);
-        //sheet.init(midifile, options);
+
 
         sheet.setNotes(notes);
         sheet.setLastStartJin(lastStartJin);
@@ -206,6 +241,10 @@ public class SightReader extends ActionBarActivity {
             sheet.setZoom(1.0f);
         }
 
+        sheet.setTempoInt(tempoInt);
+
+        sheet.setTimeNum(timeNum);
+        sheet.setTimeDen(timeDen);
         sheet.init2(options);
 
 
@@ -219,7 +258,40 @@ public class SightReader extends ActionBarActivity {
         //player.SetMidiFile(midifile, options, sheet);
         player.SetMidiFile(midifile, options, sheet);
         player.setMetronomeOn(metronomeOn);
+        player.setPlaySoundFlag(playSoundFlag);
+
+        Beats beat;
+        if (timeSig==0) {
+            beat = Beats.four;
+            player.setBeats(beat);
+        }
+        else if (timeSig==1) {
+            beat = Beats.two;
+            player.setBeats(beat);
+        }
+        else if (timeSig==2) {
+            beat = Beats.three;
+            player.setBeats(beat);
+        }
+        else if (timeSig==3) {
+            beat = Beats.one;
+            player.setBeats(beat);
+        }
+        else if (timeSig==4) {
+            beat = Beats.six;
+            player.setBeats(beat);
+        }
+        else if (timeSig==5) {
+            beat = Beats.four;
+            player.setBeats(beat);
+        }
+        else if (timeSig==6) {
+            beat = Beats.two;
+            player.setBeats(beat);
+        }
         sheet.setPlayer(player);
+        player.setTempo((short) tempoInt);
+
 
         layout.requestLayout();
         sheet.callOnDraw();
@@ -255,11 +327,14 @@ public class SightReader extends ActionBarActivity {
 // 2. Add events to the tracks
 // Track 0 is the tempo map
         com.leff.midi.event.meta.TimeSignature ts = new com.leff.midi.event.meta.TimeSignature();
-        ts.setTimeSignature(4, 4, 384,
-                128);
+        ts.setTimeSignature(timeNum, timeDen, 384, 128);
 
         Tempo tempo = new Tempo();
-        tempo.setBpm(60);
+        float tempTempo = tempoInt;
+        if (timeDen == 8) {
+            tempTempo = tempTempo * 3 / 2;
+        }
+        tempo.setBpm(tempTempo);
 
         //com.leff.midi.event.Controller controllerEvent = new com.leff.midi.event.Controller(0,0,64,127);
         //tempoTrack.insertEvent(controllerEvent);
@@ -352,7 +427,6 @@ public class SightReader extends ActionBarActivity {
             Toast toast = Toast.makeText(this, "CheckFile midi: " + e.toString(), Toast.LENGTH_LONG);
             toast.show();
         }
-        Log.d("Drum13", "here bad data");
         return null;
     }
 
