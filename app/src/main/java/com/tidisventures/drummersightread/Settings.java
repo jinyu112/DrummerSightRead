@@ -29,6 +29,7 @@ public class Settings extends ActionBarActivity {
     private static CheckBox cb_flam;
     private static CheckBox cb_scroll;
     private static CheckBox cb_sound;
+    private static CheckBox cb_shade;
     private static  Spinner spinner;
     private static  Spinner spinnerTS;
     private static EditText evtempo;
@@ -44,6 +45,7 @@ public class Settings extends ActionBarActivity {
         cb_flam = (CheckBox) findViewById(R.id.settings_cbflam);
         cb_scroll = (CheckBox) findViewById(R.id.settings_cbscroll);
         cb_sound = (CheckBox) findViewById(R.id.settings_cbsound);
+        cb_shade = (CheckBox) findViewById(R.id.settings_cbshade);
         evtempo = (EditText) findViewById(R.id.settings_evtempo);
         evtempo.setGravity(Gravity.CENTER);
 
@@ -95,6 +97,10 @@ public class Settings extends ActionBarActivity {
 
             if (settingsOut[9].equals("1")) {
                 cb_sound.setChecked(true);
+            }
+
+            if (settingsOut[10].equals("1")) {
+                cb_shade.setChecked(true);
             }
 
             if (settingsOut[6].equals("0")) {
@@ -151,8 +157,9 @@ public class Settings extends ActionBarActivity {
         boolean checked_flam = cb_flam.isChecked();
         boolean checked_scroll = cb_scroll.isChecked();
         boolean checked_sound = cb_sound.isChecked();
+        boolean checked_shade = cb_shade.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
@@ -187,6 +194,11 @@ public class Settings extends ActionBarActivity {
             settingsInput[9] = "1"; //sound
         }
         else settingsInput[9] = "0";
+
+        if (checked_shade) {
+            settingsInput[10] = "1"; //sound
+        }
+        else settingsInput[10] = "0";
 
         if (spinner.getSelectedItemPosition()==0) {
             settingsInput[6] = "0";
@@ -284,7 +296,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);

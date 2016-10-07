@@ -106,6 +106,8 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     private int timeNum = 4;
     private int timeDen = 4;
 
+    //shade notes flag
+    private boolean shadeNotes = false;
 
     public SheetMusic(Context context) {
         super(context);
@@ -1275,8 +1277,13 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         int ypos = 0;
         for (Staff staff : staffs) {
             bufferCanvas.translate(0, ypos);
-            x_shade = staff.ShadeNotes(bufferCanvas, paint, shade1,
-                    currentPulseTime, prevPulseTime, x_shade);
+            if (shadeNotes) {
+                x_shade = staff.ShadeNotes(bufferCanvas, paint, shade1,
+                        currentPulseTime, prevPulseTime, x_shade);
+            }
+            else {
+                x_shade = staff.NoShadeNotes(currentPulseTime, prevPulseTime, x_shade);
+            }
             bufferCanvas.translate(0, -ypos);
             ypos += staff.getHeight();
             if (currentPulseTime >= staff.getEndTime()) {
@@ -1613,6 +1620,10 @@ public void stopMusic() {
 
     public void setTimeDen(int in) {
         this.timeDen = in;
+    }
+
+    public void setShadeNotes(boolean in) {
+        this.shadeNotes = in;
     }
 }
 

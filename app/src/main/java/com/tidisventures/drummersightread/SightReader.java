@@ -53,6 +53,7 @@ public class SightReader extends ActionBarActivity {
     private static int timeDen = 4;
     private static int timeSig = 0; //0 is 4/4, 1 is 2/4, 2 is 3/4, and so on
     private static boolean playSoundFlag = false;
+    private static boolean shadeNotes = false;
 
 
     @Override
@@ -89,6 +90,11 @@ public class SightReader extends ActionBarActivity {
                 playSoundFlag = true;//playsound
             }
             else playSoundFlag = false;
+
+            if (settingsOut[10].equals("1")) {
+                shadeNotes = true;//shadenotes
+            }
+            else shadeNotes = false;
 
             zoomSetting = 1;
             if (settingsOut[6].equals("0")) {
@@ -156,25 +162,11 @@ public class SightReader extends ActionBarActivity {
         TimeSigSymbol.LoadImages(this);
         MidiPlayer.LoadImages(this);
 
-//        // Parse the MidiFile from the raw bytes
-//        byte[] data = this.getIntent().getByteArrayExtra(MidiDataID);
-//        String title = this.getIntent().getStringExtra(MidiTitleID);
-//        this.setTitle("MidiSheetMusic: " + title);
-//        try {
-//            midifile = new MidiFile(data, title);
-//        }
-//        catch (MidiFileException e) {
-//            this.finish();
-//            return;
-//        }
-//
+
 //        // Initialize the settings (MidiOptions).
 //        // If previous settings have been saved, used those
         midifile = genMidiFile(genNotesMain());
         options = new MidiOptions(midifile);
-//        CRC32 crc = new CRC32();
-//        crc.update(data);
-//        midiCRC = crc.getValue();
         SharedPreferences settings = getPreferences(0);
         if (scrollVert) {
             options.setScrollVert(true);
@@ -182,27 +174,11 @@ public class SightReader extends ActionBarActivity {
             options.setScrollVert(false);
         }
 
-            options.shade1Color = settings.getInt("shade1Color", options.shade1Color);
+        options.shade1Color = settings.getInt("shade1Color", options.shade1Color);
         options.shade2Color = settings.getInt("shade2Color", options.shade2Color);
-//        String json = settings.getString("" + midiCRC, null);
-//        MidiOptions savedOptions = MidiOptions.fromJson(json);
-//        if (savedOptions != null) {
-//            options.merge(savedOptions);
-//        }
         createView();
         createSheetMusic(options);
 
-//        Button butt = (Button) findViewById(R.id.butt);
-//
-//        butt.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View arg0) {
-//                Intent i = new Intent(getApplicationContext(), SightReader.class);
-//                startActivity(i);
-//                finish();
-//            }
-//
-//        });
     }
 
     /* Create the MidiPlayer and Piano views */
@@ -211,11 +187,8 @@ public class SightReader extends ActionBarActivity {
 
         layout.setOrientation(LinearLayout.VERTICAL);
         player = new MidiPlayer(this);
-        //piano = new Piano(this);
         layout.addView(player);
-        //layout.addView(piano);
         setContentView(layout);
-        //player.SetPiano(piano);
         layout.requestLayout();
     }
 
@@ -236,8 +209,7 @@ public class SightReader extends ActionBarActivity {
         }
         else if (zoomSetting==1) {
             sheet.setZoom(0.75f);
-        }
-        else if (zoomSetting==2) {
+        } else if (zoomSetting==2) {
             sheet.setZoom(1.0f);
         }
 
@@ -245,6 +217,7 @@ public class SightReader extends ActionBarActivity {
 
         sheet.setTimeNum(timeNum);
         sheet.setTimeDen(timeDen);
+        sheet.setShadeNotes(shadeNotes);
         sheet.init2(options);
 
 

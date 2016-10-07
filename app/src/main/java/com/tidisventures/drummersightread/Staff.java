@@ -492,6 +492,73 @@ public class Staff {
         return x_shade;
     }
 
+    //No shade option in sheetmusic (basically copied shadenotes method and removed shading code but still need
+    // to calculate x_shade
+    /** Shade all the chords played in the given time.
+     *  Un-shade any chords shaded in the previous pulse time.
+     *  Store the x coordinate location where the shade was drawn.
+     */
+    public int NoShadeNotes(int currentPulseTime, int prevPulseTime, int x_shade) {
+
+        /* If there's nothing to unshade, or shade, return */
+        if ((starttime > prevPulseTime || endtime < prevPulseTime) &&
+                (starttime > currentPulseTime || endtime < currentPulseTime)) {
+            return x_shade;
+        }
+
+        /* Skip the left side Clef symbol and key signature */
+        int xpos = keysigWidth;
+
+        MusicSymbol curr = null;
+
+        /* Loop through the symbols.
+         * Unshade symbols where start <= prevPulseTime < end
+         * Shade symbols where start <= currentPulseTime < end
+         */
+        for (int i = 0; i < symbols.size(); i++) {
+            curr = symbols.get(i);
+            if (curr instanceof BarSymbol) {
+                xpos += curr.getWidth();
+                continue;
+            }
+
+            int start = curr.getStartTime();
+            int end = 0;
+            if (i+2 < symbols.size() && symbols.get(i+1) instanceof BarSymbol) {
+                end = symbols.get(i+2).getStartTime();
+            }
+            else if (i+1 < symbols.size()) {
+                end = symbols.get(i+1).getStartTime();
+            }
+            else {
+                end = endtime;
+            }
+
+
+            /* If we've past the previous and current times, we're done. */
+            if ((start > prevPulseTime) && (start > currentPulseTime)) {
+                if (x_shade == 0) {
+                    x_shade = xpos;
+                }
+                return x_shade;
+            }
+            /* If shaded notes are the same, we're done */
+            if ((start <= currentPulseTime) && (currentPulseTime < end) &&
+                    (start <= prevPulseTime) && (prevPulseTime < end)) {
+
+                x_shade = xpos;
+                return x_shade;
+            }
+//            /* If symbol is in the current time, draw a shaded background */
+            if ((start <= currentPulseTime) && (currentPulseTime < end)) {
+                x_shade = xpos;
+            }
+
+            xpos += curr.getWidth();
+        }
+        return x_shade;
+    }
+
     @Override
     public String toString() {
         String result = "Staff clef=" + clefsym.toString() + "\n";
