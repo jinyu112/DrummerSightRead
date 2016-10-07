@@ -150,6 +150,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         showNoteLetters = options.showNoteLetters;
 
         TimeSignature time = new TimeSignature(timeNum,timeDen,96,convertBPMtoMicrosec(tempoInt));
+
         returnedTime = time;
 
         mainkey = new KeySignature(0,0);

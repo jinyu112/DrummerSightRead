@@ -16,6 +16,7 @@ import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
+import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
@@ -70,6 +71,10 @@ public class MidiPlayer extends LinearLayout {
     private TextView speedText;        /** The "Speed" label */
     private SeekBar speedBar;    /** The seekbar for controlling the playback speed */
 
+    private TextView tempoTV;
+    private Button plusButton;
+    private Button minusButton;
+
     int playstate;               /** The playing state of the Midi Player */
     final int stopped   = 1;     /** Currently stopped */
     final int playing   = 2;     /** Currently playing music */
@@ -100,6 +105,8 @@ public class MidiPlayer extends LinearLayout {
     private double sound = 6440;
     private boolean metronomeOn = true;
     private Beats beat;
+
+    private int timeDen = 4;
 
     //play sound?
     private boolean playSoundFlag = false;
@@ -241,15 +248,37 @@ public class MidiPlayer extends LinearLayout {
 
 
         /* Create the Speed bar */
-        speedText = new TextView(context);
-        speedText.setText("   Speed:    ");
-        speedText.setGravity(Gravity.CENTER);
-        this.addView(speedText);
+//        speedText = new TextView(context);
+//        speedText.setText("   Speed:    ");
+//        speedText.setGravity(Gravity.CENTER);
+//        this.addView(speedText);
+//
+//        speedBar = new SeekBar(context);
+//        speedBar.setMax(100);
+//        speedBar.setProgress(100);
+//        this.addView(speedBar);
 
-        speedBar = new SeekBar(context);
-        speedBar.setMax(100);
-        speedBar.setProgress(100);
-        this.addView(speedBar);
+        tempoTV = new TextView(context);
+        tempoTV.setText(Integer.toString(bpm));
+        tempoTV.setTextColor(Color.WHITE);
+        tempoTV.setGravity(Gravity.CENTER);
+        this.addView(tempoTV);
+
+        plusButton = new Button(context);
+        plusButton.setText("+");
+        plusButton.setGravity(Gravity.CENTER);
+        PlusOnClickListener ptsScoredPlusListener = new PlusOnClickListener(tempoTV);
+        plusButton.setOnClickListener(ptsScoredPlusListener);
+        this.addView(plusButton);
+
+        minusButton = new Button(context);
+        minusButton.setText("-");
+        minusButton.setGravity(Gravity.CENTER);
+        MinusOnClickListener ptsScoredMinusListener = new MinusOnClickListener(tempoTV);
+        minusButton.setOnClickListener(ptsScoredMinusListener);
+        this.addView(minusButton);
+
+
 
         /* Initialize the timer used for playback, but don't startroundedDelayForCountOff
          * the timer yet (enabled = false).
@@ -287,18 +316,18 @@ public class MidiPlayer extends LinearLayout {
         stopButton.setLayoutParams(params);
         fastFwdButton.setLayoutParams(params);
 
-        params = (LinearLayout.LayoutParams) speedText.getLayoutParams();
-        params.height = buttonheight;
-        speedText.setLayoutParams(params);
-
-        params = new LinearLayout.LayoutParams(buttonheight * 6, buttonheight);
-        params.width = buttonheight * 6;
-        params.bottomMargin = 0;
-        params.leftMargin = 0;
-        params.topMargin = 0;
-        params.rightMargin = 0;
-        speedBar.setLayoutParams(params);
-        speedBar.setPadding(pad, pad, pad, pad);
+//        params = (LinearLayout.LayoutParams) speedText.getLayoutParams();
+//        params.height = buttonheight;
+//        speedText.setLayoutParams(params);
+//
+//        params = new LinearLayout.LayoutParams(buttonheight * 6, buttonheight);
+//        params.width = buttonheight * 6;
+//        params.bottomMargin = 0;
+//        params.leftMargin = 0;
+//        params.topMargin = 0;
+//        params.rightMargin = 0;
+//        speedBar.setLayoutParams(params);
+//        speedBar.setPadding(pad, pad, pad, pad);
 
     }
 
@@ -306,6 +335,8 @@ public class MidiPlayer extends LinearLayout {
      *  and store the current midifile and sheet music.
      */
     public void SetMidiFile(MidiFile file, MidiOptions opt, SheetMusic s) {
+        //Displaying the tempo in beats per minute dynamically
+        tempoTV.setText(Integer.toString(bpm));
 
         /* If we're paused, and using the same midi file, redraw the
          * highlighted notes.
@@ -353,7 +384,6 @@ public class MidiPlayer extends LinearLayout {
         public void run() {
             if (playstate == paused || playstate == stopped) {
                 sheet.ShadeNotes((int)currentPulseTime, (int)-10, false);
-                //piano.ShadeNotes((int)currentPulseTime, (int)prevPulseTime);
             }
         }
     };
@@ -377,8 +407,16 @@ public class MidiPlayer extends LinearLayout {
      *  this temporary filename in tempSoundFile.
      */
     private void CreateMidiFile() {
+
         double inverse_tempo = 1.0 / midifile.getTime().getTempo();
-        double inverse_tempo_scaled = inverse_tempo * speedBar.getProgress() / 100.0;
+        try {
+            inverse_tempo = returnInverseTempo();
+        } catch (NumberFormatException ex) {
+            System.err.println("Caught error in midiplayer: "
+                    + ex.getMessage());
+        }
+        double inverse_tempo_scaled = inverse_tempo;
+
         options.tempo = (int)(1.0 / inverse_tempo_scaled);
         pulsesPerMsec = midifile.getTime().getQuarter() * (1000.0 / options.tempo);
 
@@ -506,7 +544,7 @@ public class MidiPlayer extends LinearLayout {
         // this will need to be updated to remove the hardcoded beatspermeasure and instead use what is specified by user
         int beatsPerMeasure = 4;
         double delayForCountOff = (double) 1/((double) bpm/(60*1000*beatsPerMeasure));
-        int roundedDelayForCountOff = (int) Math.round(delayForCountOff);
+        int roundedDelayForCountOff = (int) Math.round(delayForCountOff) - 100; // - 100 because of postDelayed(TimerCallback, 100); line in the doplay() method
         if (!metronomeOn) {
             roundedDelayForCountOff = 100;
         }
@@ -759,7 +797,14 @@ public class MidiPlayer extends LinearLayout {
             if (metronome!=null) {
                 metronome.setBeat(beats);
                 metronome.setNoteValue(noteValue);
-                metronome.setBpm(bpm);
+
+                short tempTempo = (short) getTempoFromTV();
+
+//            //limit tempo going into metronome
+                if (tempTempo > 200) tempTempo = 200;
+                if (tempTempo < 30) tempTempo = 30;
+
+                metronome.setBpm(tempTempo);
                 metronome.setBeatSound(beatSound);
                 metronome.setSound(sound);
                 metronome.play();
@@ -774,9 +819,9 @@ public class MidiPlayer extends LinearLayout {
             }
         }
 
-        public void setBpm(short bpm) {
+        public void setBpm(short bpm_in) {
             if (metronome!=null) {
-                metronome.setBpm(bpm);
+                metronome.setBpm(bpm_in);
                 metronome.calcSilence();
             }
         }
@@ -809,6 +854,58 @@ public class MidiPlayer extends LinearLayout {
 public void setPlaySoundFlag(boolean in) {
     this.playSoundFlag = in;
 }
+
+    private int convertBPMtoMicrosec(double tempo_in) {
+        int microseconds = 1000000;
+        if (tempo_in != 0) {
+            microseconds = (int) Math.round(60000000 / tempo_in);
+        }
+        return microseconds;
+    }
+
+
+    private int getTempoFromTV() {
+        String tempStr="0";
+        int tempo_out = 60;
+        try {
+            tempStr = tempoTV.getText().toString();
+            if (tempStr.equals("") || tempStr.equals(".") || tempStr.equals(",")) {
+                tempStr = "60";
+            }
+            double tempStrDbl = Double.parseDouble(tempStr);
+            tempo_out = (int) Math.round(tempStrDbl);
+        } catch (NumberFormatException ex) {
+            System.err.println("Caught NumberFormatException in midiplayer: "
+                    + ex.getMessage());
+        }
+        return tempo_out;
+    }
+
+private double returnInverseTempo() {
+    String tempStr="0";
+    double inverse_tempo_temp = 1.0 / 1000000;
+    try {
+        tempStr = tempoTV.getText().toString();
+        if (tempStr.equals("") || tempStr.equals(".") || tempStr.equals(",")) {
+            tempStr = "60";
+        }
+        double tempStrDbl = Double.parseDouble(tempStr);
+        if (timeDen == 8) {
+            tempStrDbl = tempStrDbl* 3 / 2;
+        }
+        inverse_tempo_temp = 1.0 / convertBPMtoMicrosec(tempStrDbl);
+    } catch (NumberFormatException ex) {
+        System.err.println("Caught NumberFormatException in midiplayer: "
+                + ex.getMessage());
+    }
+    return inverse_tempo_temp;
 }
+
+    public void setTimeDen(int in) {
+        this.timeDen = in;
+    }
+}
+
+
 
 

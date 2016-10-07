@@ -250,12 +250,10 @@ public class SightReader extends ActionBarActivity {
 
         //sheet.setPlayer(player);
         layout.addView(sheet);
-        //piano.SetMidiFile(midifile, options, player);
-        //piano.SetShadeColors(options.shade1Color, options.shade2Color);
-
-//        midifile = new MidiFile("adsf",genEvents(sheet.getNotes()),sheet.getTracks(),(short) 0,sheet.getTime(),96,96*4*12,false);
 
         //player.SetMidiFile(midifile, options, sheet);
+        player.setTempo((short) tempoInt);
+        player.setTimeDen(timeDen);
         player.SetMidiFile(midifile, options, sheet);
         player.setMetronomeOn(metronomeOn);
         player.setPlaySoundFlag(playSoundFlag);
@@ -290,7 +288,7 @@ public class SightReader extends ActionBarActivity {
             player.setBeats(beat);
         }
         sheet.setPlayer(player);
-        player.setTempo((short) tempoInt);
+
 
 
         layout.requestLayout();
