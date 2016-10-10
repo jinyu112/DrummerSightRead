@@ -32,6 +32,7 @@ public class Settings extends ActionBarActivity {
     private static CheckBox cb_shade;
     private static  Spinner spinner;
     private static  Spinner spinnerTS;
+    private static  Spinner spinnerDiff;
     private static EditText evtempo;
 
     @Override
@@ -74,6 +75,19 @@ public class Settings extends ActionBarActivity {
         //default to 4/4
         spinnerTS.setSelection(0);
 
+
+        spinnerDiff = (Spinner) findViewById(R.id.settings_dpdiff);
+// Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapterDiff = ArrayAdapter.createFromResource(this,
+                R.array.difficulty, android.R.layout.simple_spinner_item);
+// Specify the layout to use when the list of choices appears
+        adapterDiff.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+// Apply the adapter to the spinner
+        spinnerDiff.setAdapter(adapterDiff);
+
+        //default to normal zoom
+        spinnerDiff.setSelection(0);
+
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
             if (settingsOut[0].equals("1")) {
@@ -112,6 +126,27 @@ public class Settings extends ActionBarActivity {
             else if (settingsOut[6].equals("2")) {
                 spinner.setSelection(2);
             }
+
+            if (settingsOut[11].equals("0")) {
+                spinnerDiff.setSelection(0);
+            }
+            else if (settingsOut[11].equals("1")) {
+                spinnerDiff.setSelection(1);
+            }
+            else if (settingsOut[11].equals("2")) {
+                spinnerDiff.setSelection(2);
+            }
+            else if (settingsOut[11].equals("3")) {
+                spinnerDiff.setSelection(3);
+            }
+            else if (settingsOut[11].equals("4")) {
+                spinnerDiff.setSelection(4);
+            }
+            else if (settingsOut[11].equals("5")) {
+                spinnerDiff.setSelection(5);
+            }
+            else spinnerDiff.setSelection(6);
+
 
 
             if (settingsOut[8].equals("4/4")) {
@@ -159,7 +194,7 @@ public class Settings extends ActionBarActivity {
         boolean checked_sound = cb_sound.isChecked();
         boolean checked_shade = cb_shade.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
@@ -235,6 +270,27 @@ public class Settings extends ActionBarActivity {
             settingsInput[8] = "4/4";
         }
 
+        if (spinnerDiff.getSelectedItemPosition()==0) {
+            settingsInput[11] = "0";
+        }
+        else if (spinnerDiff.getSelectedItemPosition()==1) {
+            settingsInput[11] = "1";
+        }
+        else if (spinnerDiff.getSelectedItemPosition()==2) {
+            settingsInput[11] = "2";
+        }
+        else if (spinnerDiff.getSelectedItemPosition()==3) {
+            settingsInput[11] = "3";
+        }
+        else if (spinnerDiff.getSelectedItemPosition()==4) {
+            settingsInput[11] = "4";
+        }
+        else if (spinnerDiff.getSelectedItemPosition()==5) {
+            settingsInput[11] = "5";
+        }
+        else {
+            settingsInput[11] = "6";
+        }
 
         String evtempo_str = "0";
         evtempo_str = evtempo.getText().toString();
@@ -296,7 +352,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);

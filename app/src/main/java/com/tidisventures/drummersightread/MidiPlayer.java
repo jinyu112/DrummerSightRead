@@ -544,7 +544,7 @@ public class MidiPlayer extends LinearLayout {
         // this will need to be updated to remove the hardcoded beatspermeasure and instead use what is specified by user
         int beatsPerMeasure = 4;
         double delayForCountOff = (double) 1/((double) bpm/(60*1000*beatsPerMeasure));
-        int roundedDelayForCountOff = (int) Math.round(delayForCountOff) - 100; // - 100 because of postDelayed(TimerCallback, 100); line in the doplay() method
+        int roundedDelayForCountOff = (int) Math.round(delayForCountOff) - 100*0; // - 100 because of postDelayed(TimerCallback, 100); line in the doplay() method
         if (!metronomeOn) {
             roundedDelayForCountOff = 100;
         }

@@ -479,6 +479,10 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                         NoteDuration.Sixteenth);
                 result = new RestSymbol[]{ r1, r2 };
                 return result;
+            case Sixteenth:
+                r1 = new RestSymbol(start, NoteDuration.Sixteenth);
+                result = new RestSymbol[]{ r1 };
+                return result;
 
             default:
                 return null;

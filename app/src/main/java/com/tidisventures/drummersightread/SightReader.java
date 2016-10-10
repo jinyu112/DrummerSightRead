@@ -18,6 +18,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
 import java.util.ArrayList;
+import java.util.Random;
 
 
 /** @class SheetMusicActivity
@@ -40,8 +41,21 @@ public class SightReader extends ActionBarActivity {
     private LinearLayout layout; /* THe layout */
     private MidiFile midifile;   /* The midi file to play */
     private MidiOptions options; /* The options for sheet music and sound */
-    private long midiCRC;      /* CRC of the midi bytes */
     private int lastStartJin;
+
+    //note durations in pulses
+    private static final int quarterNote = 96;
+    private static final int halfNote = quarterNote * 2;
+    private static final int wholeNote = quarterNote * 4;
+    private static final int dottedQuarterNote = 96 * 3 / 2;
+    private static final int dottedHalfNote = 96 * 3;
+    private static final int eighthNote = 96 / 2;
+    private static final int dottedEighthNote = eighthNote * 3 / 2;
+    private static final int tripletNote = 96 / 3 ;
+    private static final int sixteenthNote= 96 / 4;
+    private static final int thirtysecondNote= 96 / 8;
+
+
 
     //from settings
     private String filename = "mySettings";
@@ -54,7 +68,11 @@ public class SightReader extends ActionBarActivity {
     private static int timeSig = 0; //0 is 4/4, 1 is 2/4, 2 is 3/4, and so on
     private static boolean playSoundFlag = false;
     private static boolean shadeNotes = false;
-
+    private static boolean accentsFlag = false;
+    private static boolean flamsFlag = false;
+    private static boolean rollsFlag = false;
+    private static int numMeasures = 6;
+    private static int difficulty = 0; //0 is easiest
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -73,14 +91,17 @@ public class SightReader extends ActionBarActivity {
                 Log.d("Drumm16", "syncop on"); //syncopation
             }
             if (settingsOut[2].equals("1")) {
-                Log.d("Drumm16", "accents on"); //accents
+                accentsFlag = true;
             }
+            else accentsFlag = false;
             if (settingsOut[3].equals("1")) {
-                Log.d("Drumm16","rolls on"); //rolls
+                rollsFlag = true;
             }
+            else rollsFlag = false;
             if (settingsOut[4].equals("1")) {
-                Log.d("Drumm16", "flams on"); //flams
+                flamsFlag = true;
             }
+            else flamsFlag = false;
             if (settingsOut[5].equals("1")) {
                  scrollVert = true;//scrolling is vertical (defaults to horizontal)
             }
@@ -105,6 +126,29 @@ public class SightReader extends ActionBarActivity {
             }
             else if (settingsOut[6].equals("2")) {
                 zoomSetting = 2;
+            }
+
+
+            if (settingsOut[11].equals("0")) {
+                difficulty = 0;
+            }
+            else if (settingsOut[11].equals("1")) {
+                difficulty = 1;
+            }
+            else if (settingsOut[11].equals("2")) {
+                difficulty = 2;
+            }
+            else if (settingsOut[11].equals("3")) {
+                difficulty = 3;
+            }
+            else if (settingsOut[11].equals("4")) {
+                difficulty = 4;
+            }
+            else if (settingsOut[11].equals("5")) {
+                difficulty = 5;
+            }
+            else {
+                difficulty = 6;
             }
 
             if (settingsOut[7] != null) {
@@ -165,7 +209,8 @@ public class SightReader extends ActionBarActivity {
 
 //        // Initialize the settings (MidiOptions).
 //        // If previous settings have been saved, used those
-        midifile = genMidiFile(genNotesMain());
+        //midifile = genMidiFile(genNotesMain());
+        midifile = genMidiFile(genNotes());
         options = new MidiOptions(midifile);
         SharedPreferences settings = getPreferences(0);
         if (scrollVert) {
@@ -363,8 +408,6 @@ public class SightReader extends ActionBarActivity {
 
     private byte[] returnData(String name) {
         try {
-
-            //FileInputStream in = this.openFileInput(name);
             FileInputStream in = new FileInputStream(new File(getExternalFilesDir(null), "exampleout.mid"));
 
 
@@ -457,11 +500,294 @@ public class SightReader extends ActionBarActivity {
     }
 
 
+    private ArrayList<MidiNote> genNotes() {
+        ArrayList<MidiNote> tempnotes = new ArrayList<MidiNote>(12);
+
+        //calculate number of pulses in numMeasures
+        int totalPulses = numMeasures * timeNum * 96;
+        int pulsesPerMeasure = timeNum * 96;
+        if (timeDen == 8) {
+            pulsesPerMeasure = pulsesPerMeasure / 2;
+        }
+
+        int remainingPulsesInMeasure = pulsesPerMeasure;
+        int runningPulseTime = 0;
+
+        //note probabilities
+        int specialNoteSeqProb1 = 0; //0 for selectedNote
+        int specialNoteSeqProb2 = 0; //1 for selectedNote
+        int sixteenthNoteProb = 0; //2 for selectedNote
+        int tripletNoteProb = 0; //3 for selectedNote
+        int eighthNoteProb = 0; //20 4 for selectedNote
+        int dottedEighthNoteProb = 0; //5 for selectedNote
+        int quarterNoteProb = 45; //6 for selectedNote
+        int dottedQuarterNoteProb = 0; //5 7 for selectedNote
+        int halfNoteProb =  20; //8 for selectedNote
+        int dottedhalfNoteProb =  0; //9 for selectedNote
+        int wholeNoteProb = 10; //10 for selectedNote
+
+        //accent probabilities
+        int accentDraw = 50; // there is a one out of this number chance that an accent is produced in the note sequence
+        int[] accentProbs = new int[] {0,1}; //marcato, normal
+
+        //rolls probabilities
+        int rollDraw = 50; // there is a one out of this number chance that a roll is produced in the note sequence
+        int[] rollProbs = new int[] {0,0,0};
+
+        //flam probabtilties
+        int flamDraw = 50; // there is a one out of this number chance that a flam is produced in the note sequence
+                          // the smaller this is, the more likely a flam will occur
+
+        //rest probabilities
+        int restDraw = 12; //10 the smaller this is, the more likely a rest will occur
+        int[] restProbs = new int[] {0,0,0,1,0}; //sixteenth, triplet, eighth, quarter, half
+
+
+        if (difficulty == 1) {
+            specialNoteSeqProb1 = 0; //0 for selectedNote
+            specialNoteSeqProb2 = 0; //1 for selectedNote
+            sixteenthNoteProb = 0; //2 for selectedNote
+            tripletNoteProb = 0; //3 for selectedNote
+            eighthNoteProb = 20; //20 4 for selectedNote
+            dottedEighthNoteProb = 0; //5 for selectedNote
+            quarterNoteProb = 45; //6 for selectedNote
+            dottedQuarterNoteProb = 5; //5 7 for selectedNote
+            halfNoteProb =  20; //8 for selectedNote
+            dottedhalfNoteProb =  0; //9 for selectedNote
+            wholeNoteProb = 10; //10 for selectedNote
+
+            accentProbs[0] = 1;
+            accentProbs[1] = 5;
+
+            rollDraw = 45;
+            rollProbs[0] = 1;
+            rollProbs[1] = 0;
+            rollProbs[2] = 0;
+
+            flamDraw = 45;
+
+            restDraw = 10;
+            restProbs[0] = 0;
+            restProbs[1] = 0;
+            restProbs[2] = 2;
+            restProbs[3] = 1;
+            restProbs[4] = 0;
+        }
+        else if (difficulty == 2) {
+            specialNoteSeqProb1 = 0; //0 for selectedNote
+            specialNoteSeqProb2 = 0; //1 for selectedNote
+            sixteenthNoteProb = 25; //2 for selectedNote
+            tripletNoteProb = 0; //3 for selectedNote
+            eighthNoteProb = 40; //20 4 for selectedNote
+            dottedEighthNoteProb = 0; //5 for selectedNote
+            quarterNoteProb = 30; //6 for selectedNote
+            dottedQuarterNoteProb = 5; //5 7 for selectedNote
+            halfNoteProb =  0; //8 for selectedNote
+            dottedhalfNoteProb =  0; //9 for selectedNote
+            wholeNoteProb = 0; //10 for selectedNote
+
+            accentDraw = 40;
+            accentProbs[0] = 1;
+            accentProbs[1] = 5;
+
+            rollDraw = 40;
+            rollProbs[0] = 1;
+            rollProbs[1] = 0;
+            rollProbs[2] = 0;
+
+            flamDraw = 35;
+
+            restDraw = 10;
+            restProbs[0] = 2;
+            restProbs[1] = 0;
+            restProbs[2] = 10;
+            restProbs[3] = 2;
+            restProbs[4] = 0;
+
+        }
+
+
+
+        final int[] restArray = {sixteenthNote, tripletNote, eighthNote, quarterNote, halfNote};
+
+        final int[] noteProbabilities = {specialNoteSeqProb1, specialNoteSeqProb2, sixteenthNoteProb,
+                tripletNoteProb, eighthNoteProb, dottedEighthNoteProb, quarterNoteProb, dottedQuarterNoteProb,
+                halfNoteProb, dottedhalfNoteProb, wholeNoteProb}; //specialnoteseq1 are note sequences with a duration of one quarter note
+                                                                  //specialnoteseq2 are note sequences with a duration of two quarter notes
+        final int[] noteArray = {quarterNote, halfNote, sixteenthNote,
+                tripletNote, eighthNote, dottedEighthNote, quarterNote, dottedQuarterNote,
+                halfNote, dottedHalfNote, wholeNote}; //must have the same order as noteProbabilities !!!!!!!!!!!!
+
+        while (runningPulseTime < totalPulses) {
+
+
+            // selecting a rest
+            int probRest = 1 + (int)(Math.random() * restDraw);
+            int rest;
+            boolean downBeatCheck  = remainingPulsesInMeasure % 96 == 0; //quarternote downbeat
+            boolean upbeatCheck = false;
+            boolean sixteenthUpBeatCheck = false;
+            if (!downBeatCheck) {
+                upbeatCheck = remainingPulsesInMeasure % 48 == 0; //eighth note upbeat
+                if (!upbeatCheck) {
+                    sixteenthUpBeatCheck = remainingPulsesInMeasure % 24 == 0;
+                }
+            }
+
+            if (probRest == 1) { //either note or rest
+                rest = 0;
+                int[] tempRestProbs = new int[restProbs.length];
+                System.arraycopy( restProbs, 0, tempRestProbs, 0, restProbs.length );
+                if (downBeatCheck) { // don't allow eighth rests on the downbeat, decrease syncopated note sequence
+                    tempRestProbs[2] = 0;
+                }
+                else if (upbeatCheck) {
+                    tempRestProbs[2] = 100; // on a upbeat, make sure the rest is an eighth rest, decrease syncopated note sequence
+                 }
+
+                int i_rest = rouletteSelect(returnRestProbArray(remainingPulsesInMeasure,tempRestProbs,restArray));
+                if (i_rest == 0) {
+                    rest = sixteenthNote;
+                }
+                else if (i_rest == 1) {
+                    rest = tripletNote;
+                }
+                else if (i_rest == 2) {
+                    rest = eighthNote;
+                }
+                else if (i_rest == 3) {
+                    rest = quarterNote;
+                }
+                else if (i_rest == 4){
+                    rest = halfNote;
+                }
+                else { //something wrong
+                    rest = 0;
+                }
+                runningPulseTime += rest;
+                remainingPulsesInMeasure = remainingPulsesInMeasure - rest;
+            } //a rest was selected
+            else { //a note was selected
+                MidiNote note = new MidiNote(0,0,0,0);
+                note.setChannel(0);
+                note.setNumber(60);
+                note.setStartTime(runningPulseTime);
+
+                int[] tempNoteProbs = new int[noteProbabilities.length];
+                System.arraycopy( noteProbabilities, 0, tempNoteProbs, 0, noteProbabilities.length );
+                if (sixteenthUpBeatCheck) {
+                    tempNoteProbs[2] = noteProbabilities[2]*100; //if on a sixteenth note upbeat, tend to select another sixteenth note
+                                                                 // to decrease chances of syncopation
+                }
+                else if (upbeatCheck) { //by definition, upbeatcheck and sixteenthupbeatcheck cannot be both true at same time
+                    tempNoteProbs[4] = noteProbabilities[4]*100; //if on a eighth not upbeat, tend to select another eighth note
+                                                                 // to decrease chances of syncopation
+                }
+
+                // selecting a note
+                int selectedNote = rouletteSelect(returnNoteProbArray(remainingPulsesInMeasure, tempNoteProbs, noteArray));
+                if (selectedNote == 0) { // specialNoteSeq1
+                    //note.setDuration(48);
+                } else if (selectedNote == 1) { // specialNoteSeq2
+                    //note.setDuration(48);
+                } else if (selectedNote == 2) { //sixteenthNote
+                    note.setDuration(sixteenthNote);
+                    runningPulseTime += sixteenthNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - sixteenthNote;
+                } else if (selectedNote == 3) { //tripletNote
+                    note.setDuration(tripletNote);
+                } else if (selectedNote == 4) { //eighthNote
+                    note.setDuration(eighthNote);
+                    runningPulseTime += eighthNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - eighthNote;
+                } else if (selectedNote == 5) {// dottedEighthNote
+                    note.setDuration(dottedEighthNote);
+                } else if (selectedNote == 6) { //quarterNote
+                    note.setDuration(quarterNote);
+                    runningPulseTime += quarterNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - quarterNote;
+                } else if (selectedNote == 7) {// dottedQuarterNote
+                    note.setDuration(dottedQuarterNote);
+                    runningPulseTime += dottedQuarterNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - dottedQuarterNote;
+                } else if (selectedNote == 8) { //halfNote
+                    note.setDuration(halfNote);
+                    runningPulseTime += halfNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - halfNote;
+                } else if (selectedNote == 9) {//dottedhalfNote
+                    note.setDuration(dottedHalfNote);
+                } else if (selectedNote == 10){ //wholeNote
+                    note.setDuration(wholeNote);
+                    runningPulseTime += wholeNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - wholeNote;
+                }
+                else { //shouldn't even get here
+                    note.setDuration(thirtysecondNote); //temp command
+                }
+
+                //selecting a flam
+                if (flamsFlag) {
+                    int probFlam = 1 + (int) (Math.random() * flamDraw);
+                    if (probFlam == 1) {
+                        note.setFlamNum(1);
+                    }
+                }
+
+                //selecting an accent
+                int probAccent = 0;
+                if (accentsFlag) {
+                    probAccent = 1 + (int) (Math.random() * accentDraw);
+                    if (probAccent == 1) {
+                        int i_accent = rouletteSelect(accentProbs);
+                        if (i_accent != -1) {
+                            if (i_accent == 0) {
+                                note.setAccentNum(1);
+                            } else {
+                                note.setAccentNum(2);
+                            }
+                        }
+                    }
+                }
+
+                //selecting a roll
+                if (rollsFlag) {
+                    int probRoll = 1 + (int) (Math.random() * rollDraw);
+                    if (probRoll == 1 && probAccent != 1) {
+                        int i_roll = rouletteSelect(rollProbs);
+                        if (i_roll != -1) {
+                            if (i_roll == 0) {
+                                note.setRollNum(1);
+                            } else if (i_roll == 1) {
+                                note.setRollNum(2);
+                            } else {
+                                note.setRollNum(3);
+                            }
+                        }
+                    }
+                }
+
+                tempnotes.add(note);
+            } //else, a note was selected
+
+            if (remainingPulsesInMeasure == 0) {
+                remainingPulsesInMeasure = pulsesPerMeasure;
+            }
+            else if (remainingPulsesInMeasure < 0) {
+                remainingPulsesInMeasure = pulsesPerMeasure + remainingPulsesInMeasure;
+            }
+
+
+        } //while loop
+
+        notes = tempnotes;
+        return tempnotes;
+    }
+
 
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);
@@ -484,6 +810,56 @@ public class SightReader extends ActionBarActivity {
     public void onStop() {
         super.onStop();
         sheet.stopMusic();
+    }
+
+
+
+    // Returns the selected index based on the weights(probabilities)
+    private int rouletteSelect(int[] weight) {
+        int weight_sum = 0;
+        for(int i=0; i<weight.length; i++) {
+            weight_sum += weight[i];
+        }
+        if (weight_sum == 0) return -1;
+
+        // get a random value
+        double value = randUniformPositive() * weight_sum;
+        // locate the random value based on the weights
+        for(int i = 0; i < weight.length; i++) {
+            value -= weight[i];
+            if(value <= 0) return i;
+        }
+        // only when rounding errors occur
+        return weight.length - 1;
+    }
+
+    private int[] returnNoteProbArray(int remainPulsesInMeasure, int[] fullNoteProbArray, int[] fullNoteDurationArray) {
+        int[] noteProbArray = new int[fullNoteDurationArray.length];
+        for (int i = 0; i < fullNoteProbArray.length; i++) {
+            if (fullNoteDurationArray[i] <= remainPulsesInMeasure) {
+                noteProbArray[i] = fullNoteProbArray[i];
+            }
+            else noteProbArray[i] = 0;
+        }
+        return noteProbArray;
+    }
+
+    private int[] returnRestProbArray(int remainPulsesInMeasure, int[] fullRestProbArray, int[] fullRestDurationArray) {
+        int[] restProbArray = new int[fullRestDurationArray.length];
+        for (int i = 0; i < fullRestProbArray.length; i++) {
+            if (fullRestDurationArray[i] <= remainPulsesInMeasure) {
+                restProbArray[i] = fullRestProbArray[i];
+            }
+            else restProbArray[i] = 0;
+        }
+        return restProbArray;
+    }
+
+
+    // Returns a uniformly distributed double value between 0.0 and 1.0
+    private double randUniformPositive() {
+        // easiest implementation
+        return new Random().nextDouble();
     }
 
 }
