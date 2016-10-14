@@ -1,8 +1,10 @@
 package com.tidisventures.drummersightread;
 
 import android.graphics.Canvas;
+import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.Path;
+import android.util.Log;
 
 /** @class Stem
  * The Stem class is used by ChordSymbol to draw the stem portion of
@@ -42,6 +44,10 @@ public class Stem {
     private boolean receiver_in_pair;  /** This stem is the receiver of a horizontal
      * beam stem from another chord. */
 
+    private boolean end_two16th_one8th;
+    private boolean end_one8th_two16th;
+    private boolean end_16th_8th_16th;
+
     /** Get/Set the direction of the stem (Up or Down) */
     public int getDirection() { return direction; }
     public void setDirection(int value) { ChangeDirection(value); }
@@ -68,6 +74,10 @@ public class Stem {
     public boolean getReceiver() { return receiver_in_pair; }
     public void setReceiver(boolean value) { receiver_in_pair = value; }
 
+    public void setEnd_two16th_one8th(boolean in) { end_two16th_one8th = in;}
+    public void setEnd_one8th_two16th(boolean in) { end_one8th_two16th = in;}
+    public void setEnd_16th_8th_16th(boolean in) { end_16th_8th_16th = in;}
+
     /** Create a new stem.  The top note, bottom note, and direction are
      * needed for drawing the vertical line of the stem.  The duration is
      * needed to draw the tail of the stem.  The overlap boolean is true
@@ -90,6 +100,7 @@ public class Stem {
         pair = null;
         width_to_pair = 0;
         receiver_in_pair = false;
+        end_two16th_one8th = false;
     }
 
     /** Calculate the vertical position (white note key) where
@@ -347,8 +358,22 @@ public class Stem {
                     duration == NoteDuration.Sixteenth ||
                     duration == NoteDuration.ThirtySecond) {
 
-                canvas.drawLine(xstart, ystart, xend, yend, paint);
+                if (end_one8th_two16th) {
+                    ystart -= SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    ystart += SheetMusic.NoteHeight;
+                    yend += SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart + width_to_pair / 2, ystart, xend, yend, paint);
+                    yend -= SheetMusic.NoteHeight;
+                }
+                else {
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                }
             }
+
             ystart += SheetMusic.NoteHeight;
             yend += SheetMusic.NoteHeight;
 
@@ -358,14 +383,28 @@ public class Stem {
                 double slope = (yend - ystart) * 1.0 / (xend - xstart);
                 int y = (int)(slope * (x - xend) + yend);
 
-                canvas.drawLine(x, y, xend, yend, paint);
+                canvas.drawLine(x, y, xend, yend, paint); //this is the shortened beam on the 16th note stem?
             }
 
             if (duration == NoteDuration.Sixteenth ||
                     duration == NoteDuration.ThirtySecond) {
 
-                canvas.drawLine(xstart, ystart, xend, yend, paint);
+                if (end_two16th_one8th) {
+                    canvas.drawLine(xstart, ystart, xend - width_to_pair / 2, yend, paint);
+                }
+                else if (end_16th_8th_16th) {
+                    int x1 = xend - SheetMusic.NoteHeight;
+                    double slope = (yend - ystart) * 1.0 / (xend - xstart);
+                    int y1 = (int)(slope * (x1 - xend) + yend);
+                    canvas.drawLine(x1, y1, xend, yend, paint);
+                    canvas.drawLine(xstart, ystart, xstart + SheetMusic.NoteHeight, yend, paint);
+                }
+                else {
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                }
             }
+
+
             ystart += SheetMusic.NoteHeight;
             yend += SheetMusic.NoteHeight;
 

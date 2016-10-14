@@ -868,6 +868,53 @@ public class ChordSymbol implements MusicSymbol {
             dotted8_to_16 = true;
         }
 
+        //2 16th notes followed by an 8th note
+        boolean two16th_to_8th = false;
+        if (chords.length == 3) {
+            int beat = time.getQuarter();
+            if ((chords[0].getStartTime() % beat) == 0) {
+                Stem middleStem = chords[1].getStem();
+                NoteDuration durMiddle = middleStem.getDuration();
+                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Sixteenth
+                        && dur2 == NoteDuration.Eighth) {
+                    two16th_to_8th = true;
+                    return two16th_to_8th;
+                }
+            }
+        }
+
+        //an 8th note followed by 2 16th notes
+        boolean eighth_to_two16th = false;
+        if (chords.length == 3) {
+            int beat = time.getQuarter();
+            if ((chords[0].getStartTime() % beat) == 0) {
+                Stem middleStem = chords[1].getStem();
+                NoteDuration durMiddle = middleStem.getDuration();
+                if (dur == NoteDuration.Eighth && durMiddle == NoteDuration.Sixteenth
+                        && dur2 == NoteDuration.Sixteenth) {
+                    eighth_to_two16th = true;
+                    return eighth_to_two16th;
+                }
+            }
+        }
+
+
+        //a 16th note followed by an 8th note followed by a 16th note
+        boolean sixteenth_to8th_to_16th = false;
+        if (chords.length == 3) {
+            int beat = time.getQuarter();
+            if ((chords[0].getStartTime() % beat) == 0) {
+                Stem middleStem = chords[1].getStem();
+                NoteDuration durMiddle = middleStem.getDuration();
+                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Eighth
+                        && dur2 == NoteDuration.Sixteenth) {
+                    sixteenth_to8th_to_16th = true;
+                    return sixteenth_to8th_to_16th;
+                }
+            }
+        }
+
+
         if (dur == NoteDuration.Whole || dur == NoteDuration.Half ||
                 dur == NoteDuration.DottedHalf || dur == NoteDuration.Quarter ||
                 dur == NoteDuration.DottedQuarter ||
@@ -1009,7 +1056,7 @@ public class ChordSymbol implements MusicSymbol {
      *   they don't draw a curvy stem.
      */
     public static
-    void CreateBeam(ChordSymbol[] chords, int spacing) {
+    void CreateBeam(ChordSymbol[] chords, int spacing, TimeSignature time) {
         Stem firstStem = chords[0].getStem();
         Stem lastStem = chords[chords.length-1].getStem();
 
@@ -1044,6 +1091,62 @@ public class ChordSymbol implements MusicSymbol {
         for (int i = 1; i < chords.length; i++) {
             chords[i].getStem().setReceiver(true);
         }
+
+
+
+        //2 16th notes followed by an 8th note
+        boolean skipRestOf3NoteCombos = false;
+        if (chords.length == 3) {
+
+            int beat = time.getQuarter();
+            if ((chords[0].getStartTime() % beat) == 0) { // only do this if the first note begins on a downbeat
+
+                NoteDuration dur = firstStem.getDuration();
+                NoteDuration dur2 = lastStem.getDuration();
+                Stem middleStem = chords[1].getStem();
+                NoteDuration durMiddle = middleStem.getDuration();
+                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Sixteenth
+                        && dur2 == NoteDuration.Eighth) {
+                    chords[0].getStem().setEnd_two16th_one8th(true);
+                    skipRestOf3NoteCombos = true;
+                }
+            }
+        }
+
+        //an 8th note followed by 2 16th notes
+        if (chords.length == 3 && !skipRestOf3NoteCombos) {
+            int beat = time.getQuarter();
+            if ((chords[0].getStartTime() % beat) == 0) { // only do this if the first note begins on a downbeat
+
+                NoteDuration dur = firstStem.getDuration();
+                NoteDuration dur2 = lastStem.getDuration();
+                Stem middleStem = chords[1].getStem();
+                NoteDuration durMiddle = middleStem.getDuration();
+                if (dur == NoteDuration.Eighth && durMiddle == NoteDuration.Sixteenth
+                        && dur2 == NoteDuration.Sixteenth) {
+                    chords[0].getStem().setEnd_one8th_two16th(true);
+                    skipRestOf3NoteCombos = true;
+                }
+            }
+        }
+
+        //an 16th note followed by 8th note followed by 16th note
+        if (chords.length == 3 && !skipRestOf3NoteCombos) {
+            int beat = time.getQuarter();
+            if ((chords[0].getStartTime() % beat) == 0) { // only do this if the first note begins on a downbeat
+
+                NoteDuration dur = firstStem.getDuration();
+                NoteDuration dur2 = lastStem.getDuration();
+                Stem middleStem = chords[1].getStem();
+                NoteDuration durMiddle = middleStem.getDuration();
+                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Eighth
+                        && dur2 == NoteDuration.Sixteenth) {
+                    chords[0].getStem().setEnd_16th_8th_16th(true);
+                }
+            }
+        }
+
+
     }
 
     /** We're connecting the stems of two chords using a horizontal beam.

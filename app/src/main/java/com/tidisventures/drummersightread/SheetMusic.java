@@ -685,7 +685,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                 }
 
                 if (ChordSymbol.CanCreateBeam(chords, time, startBeat)) {
-                    ChordSymbol.CreateBeam(chords, horizDistance.value);
+                    ChordSymbol.CreateBeam(chords, horizDistance.value,time);
                     startIndex = chordIndexes[numChords-1] + 1;
                 }
                 else {
@@ -696,7 +696,8 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                  * If we created a beam, we start after the last chord.
                  * If we failed to create a beam, we start after the first chord.
                  */
-            }
+            } // end while
+
         }
     }
 

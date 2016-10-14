@@ -539,7 +539,7 @@ public class SightReader extends ActionBarActivity {
                           // the smaller this is, the more likely a flam will occur
 
         //rest probabilities
-        int restDraw = 12; //10 the smaller this is, the more likely a rest will occur
+        int restDraw = 18; //10 the smaller this is, the more likely a rest will occur
         int[] restProbs = new int[] {0,0,0,1,0}; //sixteenth, triplet, eighth, quarter, half
 
 
@@ -566,7 +566,7 @@ public class SightReader extends ActionBarActivity {
 
             flamDraw = 45;
 
-            restDraw = 10;
+            restDraw = 15;
             restProbs[0] = 0;
             restProbs[1] = 0;
             restProbs[2] = 2;
@@ -576,11 +576,11 @@ public class SightReader extends ActionBarActivity {
         else if (difficulty == 2) {
             specialNoteSeqProb1 = 0; //0 for selectedNote
             specialNoteSeqProb2 = 0; //1 for selectedNote
-            sixteenthNoteProb = 25; //2 for selectedNote
+            sixteenthNoteProb = 25+15; //2 for selectedNote
             tripletNoteProb = 0; //3 for selectedNote
             eighthNoteProb = 40; //20 4 for selectedNote
             dottedEighthNoteProb = 0; //5 for selectedNote
-            quarterNoteProb = 30; //6 for selectedNote
+            quarterNoteProb = 30/2; //6 for selectedNote
             dottedQuarterNoteProb = 5; //5 7 for selectedNote
             halfNoteProb =  0; //8 for selectedNote
             dottedhalfNoteProb =  0; //9 for selectedNote
@@ -597,7 +597,7 @@ public class SightReader extends ActionBarActivity {
 
             flamDraw = 35;
 
-            restDraw = 10;
+            restDraw = 15;
             restProbs[0] = 2;
             restProbs[1] = 0;
             restProbs[2] = 10;
@@ -633,17 +633,22 @@ public class SightReader extends ActionBarActivity {
                     sixteenthUpBeatCheck = remainingPulsesInMeasure % 24 == 0;
                 }
             }
-
+//Log.d("Drumm17","remainingPulsesInMeasure: " + remainingPulsesInMeasure);
             if (probRest == 1) { //either note or rest
                 rest = 0;
+//                Log.d("Drumm17","rest");
                 int[] tempRestProbs = new int[restProbs.length];
                 System.arraycopy( restProbs, 0, tempRestProbs, 0, restProbs.length );
-                if (downBeatCheck) { // don't allow eighth rests on the downbeat, decrease syncopated note sequence
+                if (downBeatCheck) { // don't allow eighth or sixteenth rests on the downbeat, decrease syncopated note sequence
                     tempRestProbs[2] = 0;
+                    tempRestProbs[0] = 0;
                 }
                 else if (upbeatCheck) {
                     tempRestProbs[2] = 100; // on a upbeat, make sure the rest is an eighth rest, decrease syncopated note sequence
                  }
+                else if (sixteenthUpBeatCheck) {
+                    tempRestProbs[0] = 100; // on a upbeat, make sure the rest is a 16th rest, decrease syncopated note sequence
+                }
 
                 int i_rest = rouletteSelect(returnRestProbArray(remainingPulsesInMeasure,tempRestProbs,restArray));
                 if (i_rest == 0) {
@@ -668,6 +673,7 @@ public class SightReader extends ActionBarActivity {
                 remainingPulsesInMeasure = remainingPulsesInMeasure - rest;
             } //a rest was selected
             else { //a note was selected
+//                Log.d("Drumm17","note");
                 MidiNote note = new MidiNote(0,0,0,0);
                 note.setChannel(0);
                 note.setNumber(60);
@@ -676,11 +682,12 @@ public class SightReader extends ActionBarActivity {
                 int[] tempNoteProbs = new int[noteProbabilities.length];
                 System.arraycopy( noteProbabilities, 0, tempNoteProbs, 0, noteProbabilities.length );
                 if (sixteenthUpBeatCheck) {
-                    tempNoteProbs[2] = noteProbabilities[2]*100; //if on a sixteenth note upbeat, tend to select another sixteenth note
+                    tempNoteProbs[2] = noteProbabilities[2]*20; //if on a sixteenth note upbeat, tend to select another sixteenth note
                                                                  // to decrease chances of syncopation
+                    tempNoteProbs[6] = 0; //don't select a quarter note on a sixteenthupbeat
                 }
                 else if (upbeatCheck) { //by definition, upbeatcheck and sixteenthupbeatcheck cannot be both true at same time
-                    tempNoteProbs[4] = noteProbabilities[4]*100; //if on a eighth not upbeat, tend to select another eighth note
+                    tempNoteProbs[4] = noteProbabilities[4]*100/50; //if on a eighth not upbeat, tend to select another eighth note
                                                                  // to decrease chances of syncopation
                 }
 
