@@ -44,9 +44,9 @@ public class Stem {
     private boolean receiver_in_pair;  /** This stem is the receiver of a horizontal
      * beam stem from another chord. */
 
-    private boolean end_two16th_one8th;
-    private boolean end_one8th_two16th;
-    private boolean end_16th_8th_16th;
+    private boolean end_two16th_one8th = false;
+    private boolean end_one8th_two16th = false;
+    private boolean end_16th_8th_16th = false;
 
     /** Get/Set the direction of the stem (Up or Down) */
     public int getDirection() { return direction; }

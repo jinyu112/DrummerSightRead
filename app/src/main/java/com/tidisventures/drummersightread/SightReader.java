@@ -175,11 +175,6 @@ public class SightReader extends ActionBarActivity {
                 timeDen = 4;
                 timeSig = 2;
             }
-            else if (settingsOut[8].equals("3/8")) {
-                timeNum = 3;
-                timeDen = 8;
-                timeSig = 3;
-            }
             else if (settingsOut[8].equals("6/4")) {
                 timeNum = 6;
                 timeDen = 4;

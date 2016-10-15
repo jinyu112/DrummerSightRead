@@ -158,17 +158,14 @@ public class Settings extends ActionBarActivity {
             else if (settingsOut[8].equals("3/4")) {
                 spinnerTS.setSelection(2);
             }
-            else if (settingsOut[8].equals("3/8")) {
+            else if (settingsOut[8].equals("6/4")) {
                 spinnerTS.setSelection(3);
             }
-            else if (settingsOut[8].equals("6/4")) {
+            else if (settingsOut[8].equals("12/8")) {
                 spinnerTS.setSelection(4);
             }
-            else if (settingsOut[8].equals("12/8")) {
-                spinnerTS.setSelection(5);
-            }
             else if (settingsOut[8].equals("6/8")) {
-                spinnerTS.setSelection(6);
+                spinnerTS.setSelection(5);
             }
             else spinnerTS.setSelection(0);
 
@@ -255,15 +252,12 @@ public class Settings extends ActionBarActivity {
             settingsInput[8] = "3/4";
         }
         else if (spinnerTS.getSelectedItemPosition()==3) {
-            settingsInput[8] = "3/8";
-        }
-        else if (spinnerTS.getSelectedItemPosition()==4) {
             settingsInput[8] = "6/4";
         }
-        else if (spinnerTS.getSelectedItemPosition()==5) {
+        else if (spinnerTS.getSelectedItemPosition()==4) {
             settingsInput[8] = "12/8";
         }
-        else if (spinnerTS.getSelectedItemPosition()==6) {
+        else if (spinnerTS.getSelectedItemPosition()==5) {
             settingsInput[8] = "6/8";
         }
         else  {
