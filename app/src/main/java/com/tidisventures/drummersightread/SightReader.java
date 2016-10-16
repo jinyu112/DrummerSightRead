@@ -574,9 +574,9 @@ public class SightReader extends ActionBarActivity {
             sixteenthNoteProb = 25+15; //2 for selectedNote
             tripletNoteProb = 0; //3 for selectedNote
             eighthNoteProb = 40; //20 4 for selectedNote
-            dottedEighthNoteProb = 0; //5 for selectedNote
-            quarterNoteProb = 30/2; //6 for selectedNote
-            dottedQuarterNoteProb = 5; //5 7 for selectedNote
+            dottedEighthNoteProb = 1*0; //5 for selectedNote
+            quarterNoteProb = 30*0; //6 for selectedNote
+            dottedQuarterNoteProb = 5*0; //5 7 for selectedNote
             halfNoteProb =  0; //8 for selectedNote
             dottedhalfNoteProb =  0; //9 for selectedNote
             wholeNoteProb = 0; //10 for selectedNote
@@ -603,13 +603,13 @@ public class SightReader extends ActionBarActivity {
 
 
 
-        final int[] restArray = {sixteenthNote, tripletNote, eighthNote, quarterNote, halfNote};
+        int[] restArray = {sixteenthNote, tripletNote, eighthNote, quarterNote, halfNote};
 
-        final int[] noteProbabilities = {specialNoteSeqProb1, specialNoteSeqProb2, sixteenthNoteProb,
+        int[] noteProbabilities = {specialNoteSeqProb1, specialNoteSeqProb2, sixteenthNoteProb,
                 tripletNoteProb, eighthNoteProb, dottedEighthNoteProb, quarterNoteProb, dottedQuarterNoteProb,
                 halfNoteProb, dottedhalfNoteProb, wholeNoteProb}; //specialnoteseq1 are note sequences with a duration of one quarter note
                                                                   //specialnoteseq2 are note sequences with a duration of two quarter notes
-        final int[] noteArray = {quarterNote, halfNote, sixteenthNote,
+        int[] noteArray = {quarterNote, halfNote, sixteenthNote,
                 tripletNote, eighthNote, dottedEighthNote, quarterNote, dottedQuarterNote,
                 halfNote, dottedHalfNote, wholeNote}; //must have the same order as noteProbabilities !!!!!!!!!!!!
 
@@ -677,7 +677,7 @@ public class SightReader extends ActionBarActivity {
                 int[] tempNoteProbs = new int[noteProbabilities.length];
                 System.arraycopy( noteProbabilities, 0, tempNoteProbs, 0, noteProbabilities.length );
                 if (sixteenthUpBeatCheck) {
-                    tempNoteProbs[2] = noteProbabilities[2]*20; //if on a sixteenth note upbeat, tend to select another sixteenth note
+                    tempNoteProbs[2] = noteProbabilities[2]*20/20; //if on a sixteenth note upbeat, tend to select another sixteenth note
                                                                  // to decrease chances of syncopation
                     tempNoteProbs[6] = 0; //don't select a quarter note on a sixteenthupbeat
                 }
@@ -704,6 +704,8 @@ public class SightReader extends ActionBarActivity {
                     remainingPulsesInMeasure = remainingPulsesInMeasure - eighthNote;
                 } else if (selectedNote == 5) {// dottedEighthNote
                     note.setDuration(dottedEighthNote);
+                    runningPulseTime += dottedEighthNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - dottedEighthNote;
                 } else if (selectedNote == 6) { //quarterNote
                     note.setDuration(quarterNote);
                     runningPulseTime += quarterNote;

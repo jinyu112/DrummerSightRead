@@ -319,10 +319,8 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         int len = midinotes.size();
 
         //debug loop
-        //Log.d("Drum11", "len1: " + len);
         for (int jj = 0; jj < len; jj++) {
             int startt = midinotes.get(jj).getStartTime();
-            //Log.d("Drum11", startt + "!");
         }
 
         i=0;
@@ -685,7 +683,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                 }
 
                 if (ChordSymbol.CanCreateBeam(chords, time, startBeat)) {
-                    ChordSymbol.CreateBeam(chords, horizDistance.value,time);
+                    ChordSymbol.CreateBeam(chords, horizDistance.value);
                     startIndex = chordIndexes[numChords-1] + 1;
                 }
                 else {
@@ -722,6 +720,10 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         }
         CreateBeamedChords(allsymbols, time, 3, true);
         CreateBeamedChords(allsymbols, time, 4, true);
+        if (time.getDenominator() == 8) {
+            CreateBeamedChords(allsymbols, time, 5, true);
+            CreateBeamedChords(allsymbols, time, 6, true);
+        }
         CreateBeamedChords(allsymbols, time, 2, true);
         CreateBeamedChords(allsymbols, time, 2, false);
     }

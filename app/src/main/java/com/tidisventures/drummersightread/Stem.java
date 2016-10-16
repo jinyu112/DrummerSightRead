@@ -44,9 +44,25 @@ public class Stem {
     private boolean receiver_in_pair;  /** This stem is the receiver of a horizontal
      * beam stem from another chord. */
 
+    // time sig denom 4
     private boolean end_two16th_one8th = false;
     private boolean end_one8th_two16th = false;
     private boolean end_16th_8th_16th = false;
+
+    //time sig denom 8
+    private boolean end_8th_2_16th_8th  = false;
+    private boolean end_2_16th_2_8th  = false;
+    private boolean end_2_8th_2_16th  = false;
+    private boolean end_8th_4_16th  = false;
+    private boolean end_4_16th_8th  = false;
+    private boolean end_2_16th_8th_2_16th = false;
+    private boolean end_16th_8th_16th_8th = false;
+    private boolean end_8th_16th_8th_16th = false;
+    private boolean end_16th_2_8th_16th = false;
+    private boolean end_3_16th_8th_16th = false;
+    private boolean end_16th_8th_3_16th = false;
+
+
 
     /** Get/Set the direction of the stem (Up or Down) */
     public int getDirection() { return direction; }
@@ -78,6 +94,21 @@ public class Stem {
     public void setEnd_one8th_two16th(boolean in) { end_one8th_two16th = in;}
     public void setEnd_16th_8th_16th(boolean in) { end_16th_8th_16th = in;}
 
+    public void setEnd_2_16th_2_8th(boolean in) { end_2_16th_2_8th = in;}
+    public void setEnd_8th_2_16th_8th(boolean in) { end_8th_2_16th_8th = in;}
+    public void setEnd_2_8th_2_16th(boolean in) { end_2_8th_2_16th = in;}
+    public void setEnd_8th_4_16th(boolean in) {end_8th_4_16th = in;}
+    public void setEnd_4_16th_8th(boolean in) {end_4_16th_8th = in;}
+    public void setEnd_2_16th_8th_2_16th(boolean in) {end_2_16th_8th_2_16th = in;}
+    public void setEnd_16th_8th_16th_8th(boolean in) {end_16th_8th_16th_8th = in;}
+    public void setEnd_8th_16th_8th_16th(boolean in) {end_8th_16th_8th_16th = in;}
+    public void setEnd_16th_2_8th_16th(boolean in) {end_16th_2_8th_16th = in;}
+    public void setEnd_3_16th_8th_16th(boolean in) {end_3_16th_8th_16th = in;}
+    public void setEnd_16th_8th_3_16th(boolean in) {end_16th_8th_3_16th = in;}
+
+
+
+
     /** Create a new stem.  The top note, bottom note, and direction are
      * needed for drawing the vertical line of the stem.  The duration is
      * needed to draw the tail of the stem.  The overlap boolean is true
@@ -100,7 +131,24 @@ public class Stem {
         pair = null;
         width_to_pair = 0;
         receiver_in_pair = false;
+
+        //X/4 flags
         end_two16th_one8th = false;
+        end_one8th_two16th = false;
+        end_16th_8th_16th = false;
+
+        //X/8 flags
+        end_8th_2_16th_8th = false;
+        end_2_16th_2_8th = false;
+        end_2_8th_2_16th = false;
+        end_8th_4_16th = false;
+        end_4_16th_8th = false;
+        end_2_16th_8th_2_16th = false;
+        end_16th_8th_16th_8th = false;
+        end_8th_16th_8th_16th = false;
+        end_16th_2_8th_16th = false;
+        end_3_16th_8th_16th = false;
+        end_16th_8th_3_16th = false;
     }
 
     /** Calculate the vertical position (white note key) where
@@ -179,8 +227,9 @@ public class Stem {
             return;
         }
 
-        if (pair != null)
+        if (pair != null) {
             DrawHorizBarStem(canvas, paint, ytop, topstaff);
+        }
         else
             DrawCurvyStem(canvas, paint, ytop, topstaff);
     }
@@ -358,7 +407,7 @@ public class Stem {
                     duration == NoteDuration.Sixteenth ||
                     duration == NoteDuration.ThirtySecond) {
 
-                if (end_one8th_two16th) {
+                if (end_one8th_two16th) { // X/4
                     ystart -= SheetMusic.NoteHeight;
                     canvas.drawLine(xstart, ystart, xend, yend, paint);
                     paint.setStrokeWidth(1);
@@ -369,8 +418,53 @@ public class Stem {
                     canvas.drawLine(xstart + width_to_pair / 2, ystart, xend, yend, paint);
                     yend -= SheetMusic.NoteHeight;
                 }
+                else if (end_8th_2_16th_8th) {// X/8
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    ystart += SheetMusic.NoteHeight;
+                    yend += SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart + width_to_pair / 3, ystart, xend - width_to_pair / 3, yend, paint);
+                    yend -= SheetMusic.NoteHeight;
+                }
+                else if (end_2_8th_2_16th) {// X/8
+                    ystart -= SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    ystart += SheetMusic.NoteHeight;
+                    yend += SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart + width_to_pair * 2/ 3, ystart, xend, yend, paint);
+                    yend -= SheetMusic.NoteHeight;
+                }
+                else if (end_8th_4_16th) {// X/8
+                    ystart -= SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    ystart += SheetMusic.NoteHeight;
+                    yend += SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart + width_to_pair / 4, ystart, xend, yend, paint);
+                    yend -= SheetMusic.NoteHeight;
+                }
+                else if (end_8th_16th_8th_16th) {//X/8
+                    ystart -= SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart, ystart, xend, yend, paint); //draw 8th bar all across
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint); //extend first eighth note stem
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    ystart += SheetMusic.NoteHeight;
+                    yend += SheetMusic.NoteHeight;
+                    canvas.drawLine(xstart + width_to_pair / 6 , ystart, xstart + width_to_pair / 3, yend, paint); //16th note horizontal stub 1
+                    canvas.drawLine(xend - width_to_pair / 6 , ystart, xend, yend, paint); //16th note horizontal stub 2
+                    yend -= SheetMusic.NoteHeight;
+                }
                 else {
                     canvas.drawLine(xstart, ystart, xend, yend, paint);
+
                 }
             }
 
@@ -392,12 +486,53 @@ public class Stem {
                 if (end_two16th_one8th) {
                     canvas.drawLine(xstart, ystart, xend - width_to_pair / 2, yend, paint);
                 }
-                else if (end_16th_8th_16th) {
+                else if (end_16th_8th_16th) {// X/4
                     int x1 = xend - SheetMusic.NoteHeight;
                     double slope = (yend - ystart) * 1.0 / (xend - xstart);
                     int y1 = (int)(slope * (x1 - xend) + yend);
                     canvas.drawLine(x1, y1, xend, yend, paint);
                     canvas.drawLine(xstart, ystart, xstart + SheetMusic.NoteHeight, yend, paint);
+                }
+                else if (end_2_16th_2_8th) {// X/8
+                    canvas.drawLine(xstart, ystart, xend - width_to_pair *2 / 3, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                }
+                else if (end_4_16th_8th) {// X/8
+                    canvas.drawLine(xstart, ystart, xend - width_to_pair / 4, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                }
+                else if (end_2_16th_8th_2_16th) {// X/8
+                    canvas.drawLine(xstart, ystart, xend - width_to_pair * 3 / 4, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    canvas.drawLine(xstart + width_to_pair * 3 / 4, ystart, xend, yend, paint);
+                }
+                else if (end_16th_8th_16th_8th) { // X/8
+                    canvas.drawLine(xstart, ystart, xstart + width_to_pair / 6, yend, paint);
+                    canvas.drawLine(xstart + width_to_pair * 2 / 3, ystart, xend - width_to_pair / 6, yend, paint);
+                }
+                else if (end_16th_2_8th_16th) { // X/8
+                    canvas.drawLine(xstart, ystart, xstart + width_to_pair / 6, yend, paint);
+                    canvas.drawLine(xend - width_to_pair / 6, ystart, xend, yend, paint);
+                }
+                else if (end_3_16th_8th_16th) {
+                    canvas.drawLine(xstart, ystart, xend - width_to_pair / 2, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    canvas.drawLine(xend - width_to_pair / 8, ystart, xend, yend, paint);
+                }
+                else if (end_16th_8th_3_16th) {
+                    canvas.drawLine(xstart, ystart, xstart + width_to_pair / 8, yend, paint);
+                    paint.setStrokeWidth(1);
+                    canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
+                    paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
+                    canvas.drawLine(xstart + width_to_pair / 2, ystart, xend, yend, paint);
                 }
                 else {
                     canvas.drawLine(xstart, ystart, xend, yend, paint);

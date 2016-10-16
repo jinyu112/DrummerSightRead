@@ -4,6 +4,7 @@ import android.graphics.Canvas;
 import android.graphics.Color;
 import android.graphics.Paint;
 import android.graphics.RectF;
+import android.provider.ContactsContract;
 import android.util.Log;
 
 import java.util.ArrayList;
@@ -853,6 +854,7 @@ public class ChordSymbol implements MusicSymbol {
     public static
     boolean CanCreateBeam(ChordSymbol[] chords, TimeSignature time, boolean startQuarter) {
         int numChords = chords.length;
+
         Stem firstStem = chords[0].getStem();
         Stem lastStem = chords[chords.length-1].getStem();
         if (firstStem == null || lastStem == null) {
@@ -860,59 +862,327 @@ public class ChordSymbol implements MusicSymbol {
         }
         int measure = chords[0].getStartTime() / time.getMeasure();
         NoteDuration dur = firstStem.getDuration();
-        NoteDuration dur2 = lastStem.getDuration();
+        NoteDuration durLast = lastStem.getDuration();
 
         boolean dotted8_to_16 = false;
         if (chords.length == 2 && dur == NoteDuration.DottedEighth &&
-                dur2 == NoteDuration.Sixteenth) {
+                durLast == NoteDuration.Sixteenth) {
             dotted8_to_16 = true;
         }
 
-        //2 16th notes followed by an 8th note
-        boolean two16th_to_8th = false;
-        if (chords.length == 3) {
-            int beat = time.getQuarter();
-            if ((chords[0].getStartTime() % beat) == 0) {
-                Stem middleStem = chords[1].getStem();
-                NoteDuration durMiddle = middleStem.getDuration();
-                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Sixteenth
-                        && dur2 == NoteDuration.Eighth) {
-                    two16th_to_8th = true;
-                    return two16th_to_8th;
+        //note combos in X/4 time sig
+        if (time.getDenominator() == 4) {
+            //2 16th notes followed by an 8th note
+            boolean two16th_to_8th = false;
+            if (chords.length == 3) {
+                int beat = time.getQuarter();
+                if ((chords[0].getStartTime() % beat) == 0) {
+                    Stem middleStem = chords[1].getStem();
+                    NoteDuration durMiddle = middleStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Sixteenth
+                            && durLast == NoteDuration.Eighth) {
+                        two16th_to_8th = true;
+                        chords[0].getStem().setEnd_two16th_one8th(true);
+                        return two16th_to_8th;
+                    }
                 }
             }
-        }
 
-        //an 8th note followed by 2 16th notes
-        boolean eighth_to_two16th = false;
-        if (chords.length == 3) {
-            int beat = time.getQuarter();
-            if ((chords[0].getStartTime() % beat) == 0) {
-                Stem middleStem = chords[1].getStem();
-                NoteDuration durMiddle = middleStem.getDuration();
-                if (dur == NoteDuration.Eighth && durMiddle == NoteDuration.Sixteenth
-                        && dur2 == NoteDuration.Sixteenth) {
-                    eighth_to_two16th = true;
-                    return eighth_to_two16th;
+            //an 8th note followed by 2 16th notes
+            boolean eighth_to_two16th = false;
+            if (chords.length == 3) {
+                int beat = time.getQuarter();
+                if ((chords[0].getStartTime() % beat) == 0) {
+                    Stem middleStem = chords[1].getStem();
+                    NoteDuration durMiddle = middleStem.getDuration();
+                    if (dur == NoteDuration.Eighth && durMiddle == NoteDuration.Sixteenth
+                            && durLast == NoteDuration.Sixteenth) {
+                        eighth_to_two16th = true;
+                        chords[0].getStem().setEnd_one8th_two16th(true);
+                        return eighth_to_two16th;
+                    }
                 }
             }
-        }
 
 
-        //a 16th note followed by an 8th note followed by a 16th note
-        boolean sixteenth_to8th_to_16th = false;
-        if (chords.length == 3) {
-            int beat = time.getQuarter();
-            if ((chords[0].getStartTime() % beat) == 0) {
-                Stem middleStem = chords[1].getStem();
-                NoteDuration durMiddle = middleStem.getDuration();
-                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Eighth
-                        && dur2 == NoteDuration.Sixteenth) {
-                    sixteenth_to8th_to_16th = true;
-                    return sixteenth_to8th_to_16th;
+            //a 16th note followed by an 8th note followed by a 16th note
+            boolean sixteenth_to8th_to_16th = false;
+            if (chords.length == 3) {
+                int beat = time.getQuarter();
+                if ((chords[0].getStartTime() % beat) == 0) {
+                    Stem middleStem = chords[1].getStem();
+                    NoteDuration durMiddle = middleStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Eighth
+                            && durLast == NoteDuration.Sixteenth) {
+                        sixteenth_to8th_to_16th = true;
+                        chords[0].getStem().setEnd_16th_8th_16th(true);
+                        return sixteenth_to8th_to_16th;
+                    }
                 }
             }
-        }
+        } // end time sig denom 4 if
+
+        //note combos in X/8 time sig
+        else if (time.getDenominator() == 8) {
+            int startTime = measure*time.getQuarter()*3; //starttime in pulses of the current measure, used to check
+                                                         //whether note groups should be connected with horizontal beam
+                                                         // default is 6/8 time
+            if (time.getNumerator() == 12) {
+                startTime = measure*time.getQuarter()*6;
+            }
+            else if (time.getNumerator() == 3) {
+                startTime = measure*time.getQuarter()*1;
+            }
+            int beat = time.getQuarter();
+
+            //12/8 check (if note group starts on this beat, then connect the note combos with a horizontal beam)
+            boolean noteGroupStartOn4thBeat = chords[0].getStartTime()== startTime + beat * 3;
+
+            if (numChords == 3) {
+                boolean threeNoteGroup_12_8_Tail = chords[1].getStartTime()== startTime + beat * 5;
+                //if the 1st note is on the 1st count, draw the beam or if the 2nd note is on the third count
+                if ( (chords[0].getStartTime()== startTime) || (chords[1].getStartTime()  == startTime + beat*2 || noteGroupStartOn4thBeat || threeNoteGroup_12_8_Tail) ) {
+                    int totalCount = chords[2].getEndTime() - chords[0].getStartTime();
+                    if (totalCount == beat*3/2 && firstStem.getDuration() == NoteDuration.Eighth && durLast == NoteDuration.Eighth) { // 3 8th notes in a row
+                        return true;
+                    }
+                }
+                return false;
+            }
+            if (numChords == 6) { //6 16th notes in a row OR 6 8th notes in a row
+                boolean sixNoteGroupCheck = chords[0].getStartTime() == startTime;
+                if (!sixNoteGroupCheck) sixNoteGroupCheck = chords[0].getStartTime() == startTime + beat * 3 /2;
+                if (!sixNoteGroupCheck) sixNoteGroupCheck = noteGroupStartOn4thBeat;
+                if (!sixNoteGroupCheck) sixNoteGroupCheck = chords[0].getStartTime() == startTime + beat * 9 /2;
+
+                if ( sixNoteGroupCheck ) {
+                    int totalCount = chords[5].getEndTime() - chords[0].getStartTime();
+                    if (totalCount == beat * 3 / 2) { //6 16th notes in a row
+                        return true;
+                    }
+                    else if (totalCount == beat*3) {
+                        Stem Stem2 = chords[1].getStem();
+                        Stem Stem3 = chords[2].getStem();
+                        Stem Stem4 = chords[3].getStem();
+                        Stem Stem5 = chords[4].getStem();
+                        if (firstStem.getDuration() == NoteDuration.Eighth &&
+                                Stem2.getDuration() == NoteDuration.Eighth &&
+                                Stem3.getDuration() == NoteDuration.Eighth &&
+                                Stem4.getDuration() == NoteDuration.Eighth &&
+                                Stem5.getDuration() == NoteDuration.Eighth &&
+                                lastStem.getDuration() == NoteDuration.Eighth) {
+                            return true;
+                        }
+                    }
+                }
+                return false;
+            }
+
+            boolean eighth_2_16th_8th = false;
+            boolean two_16th_2_8th = false;
+            boolean two_8th_2_16th = false;
+            boolean sixteenth_8th_16th_8th = false;
+            boolean eighth_16th_8th_16th = false;
+            boolean sixteenth_2_8th_16th = false;
+            if (numChords == 4) {
+                boolean fourNoteGroup_12_8_tailCombo = chords[0].getStartTime() == startTime + beat * 9 / 2 ;
+
+                //8th note followed by 2 16th followed by 8th
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
+                    Stem tempStem = chords[1].getStem();
+                    NoteDuration dur2nd = tempStem.getDuration();
+                    tempStem = chords[2].getStem();
+                    NoteDuration dur3rd = tempStem.getDuration();
+                    if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Sixteenth
+                            && dur3rd == NoteDuration.Sixteenth && durLast == NoteDuration.Eighth) {
+                        eighth_2_16th_8th = true;
+                        chords[0].getStem().setEnd_8th_2_16th_8th(true);
+                        return eighth_2_16th_8th;
+                    }
+                }
+                //2 16th notes followed by 2 8th notes
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
+                    Stem tempStem = chords[1].getStem();
+                    NoteDuration dur2nd = tempStem.getDuration();
+                    tempStem = chords[2].getStem();
+                    NoteDuration dur3rd = tempStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
+                            && dur3rd == NoteDuration.Eighth && durLast == NoteDuration.Eighth) {
+                        two_16th_2_8th = true;
+                        chords[0].getStem().setEnd_2_16th_2_8th(true);
+                        return two_16th_2_8th;
+                    }
+                }
+                //2 8th notes followed by 2 16th notes
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
+                    Stem secondStem = chords[1].getStem();
+                    NoteDuration dur2nd = secondStem.getDuration();
+                    Stem thirdStem = chords[2].getStem();
+                    NoteDuration dur3nd = thirdStem.getDuration();
+                    if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Eighth
+                            && dur3nd == NoteDuration.Sixteenth && durLast == NoteDuration.Sixteenth) {
+                        two_8th_2_16th = true;
+                        chords[0].getStem().setEnd_2_8th_2_16th(true);
+                        return two_8th_2_16th;
+                    }
+                }
+
+                //16th followed by 8th followed by 16th followed by 8th
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
+                    Stem secondStem = chords[1].getStem();
+                    NoteDuration dur2nd = secondStem.getDuration();
+                    Stem thirdStem = chords[2].getStem();
+                    NoteDuration dur3nd = thirdStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Eighth
+                            && dur3nd == NoteDuration.Sixteenth && durLast == NoteDuration.Eighth) {
+                        sixteenth_8th_16th_8th = true;
+                        chords[0].getStem().setEnd_16th_8th_16th_8th(true);
+                        return sixteenth_8th_16th_8th;
+                    }
+                }
+
+                //16th followed by 2 8th followed by 16th
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
+                    Stem secondStem = chords[1].getStem();
+                    NoteDuration dur2nd = secondStem.getDuration();
+                    Stem thirdStem = chords[2].getStem();
+                    NoteDuration dur3nd = thirdStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Eighth
+                            && dur3nd == NoteDuration.Eighth && durLast == NoteDuration.Sixteenth) {
+                        sixteenth_2_8th_16th = true;
+                        chords[0].getStem().setEnd_16th_2_8th_16th(true);
+                        return sixteenth_2_8th_16th;
+                    }
+                }
+
+                //8th followed by 16th followed by 8th followed by 16th
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
+                    Stem secondStem = chords[1].getStem();
+                    NoteDuration dur2nd = secondStem.getDuration();
+                    Stem thirdStem = chords[2].getStem();
+                    NoteDuration dur3nd = thirdStem.getDuration();
+                    if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Sixteenth
+                            && dur3nd == NoteDuration.Eighth && durLast == NoteDuration.Sixteenth) {
+                        eighth_16th_8th_16th = true;
+                        chords[0].getStem().setEnd_8th_16th_8th_16th(true);
+                        return eighth_16th_8th_16th;
+                    }
+                }
+                //prevent other note sequences from connecting
+                return false;
+
+            } //end numChords == 4 if
+
+            if (numChords == 5) {
+                boolean fiveNoteGroup_12_8_tailCombo = chords[0].getStartTime() == startTime + beat * 9 / 2;
+
+                //1 8th note followed by 4 16th
+                boolean eighth_4_16th = false;
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
+                    Stem tempStem = chords[1].getStem();
+                    NoteDuration dur2nd = tempStem.getDuration();
+                    tempStem = chords[2].getStem();
+                    NoteDuration dur3rd = tempStem.getDuration();
+                    tempStem = chords[3].getStem();
+                    NoteDuration dur4th = tempStem.getDuration();
+
+                    if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Sixteenth
+                            && dur3rd == NoteDuration.Sixteenth && dur4th == NoteDuration.Sixteenth
+                            && durLast == NoteDuration.Sixteenth) {
+                        eighth_4_16th = true;
+                        chords[0].getStem().setEnd_8th_4_16th(true);
+                        return eighth_4_16th;
+                    }
+                }
+
+                //4 16th notes followed by 1 8th
+                boolean four_16th_1_8th = false;
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
+                    Stem tempStem = chords[1].getStem();
+                    NoteDuration dur2nd = tempStem.getDuration();
+                    tempStem = chords[2].getStem();
+                    NoteDuration dur3rd = tempStem.getDuration();
+                    tempStem = chords[3].getStem();
+                    NoteDuration dur4th = tempStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
+                            && dur3rd == NoteDuration.Sixteenth && dur4th == NoteDuration.Sixteenth
+                            && durLast == NoteDuration.Eighth) {
+                        four_16th_1_8th = true;
+                        chords[0].getStem().setEnd_4_16th_8th(true);
+                        return four_16th_1_8th;
+                    }
+                }
+
+                //2 16th notes followed by 1 8th followed by 2 16th
+                boolean two_16th_1_8th_2_16h = false;
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
+                    Stem tempStem = chords[1].getStem();
+                    NoteDuration dur2nd = tempStem.getDuration();
+                    tempStem = chords[2].getStem();
+                    NoteDuration dur3rd = tempStem.getDuration();
+                    tempStem = chords[3].getStem();
+                    NoteDuration dur4th = tempStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
+                            && dur3rd == NoteDuration.Eighth && dur4th == NoteDuration.Sixteenth
+                            && durLast == NoteDuration.Sixteenth) {
+                        two_16th_1_8th_2_16h = true;
+                        chords[0].getStem().setEnd_2_16th_8th_2_16th(true);
+                        return two_16th_1_8th_2_16h;
+                    }
+                }
+
+                //3 16th notes followed by 1 8th followed by 16th
+                boolean three_16th_8th_16th = false;
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
+                    Stem tempStem = chords[1].getStem();
+                    NoteDuration dur2nd = tempStem.getDuration();
+                    tempStem = chords[2].getStem();
+                    NoteDuration dur3rd = tempStem.getDuration();
+                    tempStem = chords[3].getStem();
+                    NoteDuration dur4th = tempStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
+                            && dur3rd == NoteDuration.Sixteenth && dur4th == NoteDuration.Eighth
+                            && durLast == NoteDuration.Sixteenth) {
+                        three_16th_8th_16th = true;
+                        chords[0].getStem().setEnd_3_16th_8th_16th(true);
+                        return three_16th_8th_16th;
+                    }
+                }
+
+                //16th note followed by 1 8th followed by 3 16th
+                boolean one_16th_8th_3_16th = false;
+                if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
+                        chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
+                    Stem tempStem = chords[1].getStem();
+                    NoteDuration dur2nd = tempStem.getDuration();
+                    tempStem = chords[2].getStem();
+                    NoteDuration dur3rd = tempStem.getDuration();
+                    tempStem = chords[3].getStem();
+                    NoteDuration dur4th = tempStem.getDuration();
+                    if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Eighth
+                            && dur3rd == NoteDuration.Sixteenth && dur4th == NoteDuration.Sixteenth
+                            && durLast == NoteDuration.Sixteenth) {
+                        one_16th_8th_3_16th = true;
+                        chords[0].getStem().setEnd_16th_8th_3_16th(true);
+                        return one_16th_8th_3_16th;
+                    }
+                }
+
+                //prevent other note sequences from connecting
+                return false;
+
+            } //end 5 note chord sequences
+        } // end time sig denom 8 else if
 
 
         if (dur == NoteDuration.Whole || dur == NoteDuration.Half ||
@@ -1056,7 +1326,7 @@ public class ChordSymbol implements MusicSymbol {
      *   they don't draw a curvy stem.
      */
     public static
-    void CreateBeam(ChordSymbol[] chords, int spacing, TimeSignature time) {
+    void CreateBeam(ChordSymbol[] chords, int spacing) {
         Stem firstStem = chords[0].getStem();
         Stem lastStem = chords[chords.length-1].getStem();
 
@@ -1088,65 +1358,11 @@ public class ChordSymbol implements MusicSymbol {
         }
 
         firstStem.SetPair(lastStem, spacing);
+        chords[0].getStem().setReceiver(false);  //explicitly set the first note of the sequence to not be a "receiver" note
+                                                 // and that the beam will start here (jin)
         for (int i = 1; i < chords.length; i++) {
             chords[i].getStem().setReceiver(true);
         }
-
-
-
-        //2 16th notes followed by an 8th note
-        boolean skipRestOf3NoteCombos = false;
-        if (chords.length == 3) {
-
-            int beat = time.getQuarter();
-            if ((chords[0].getStartTime() % beat) == 0) { // only do this if the first note begins on a downbeat
-
-                NoteDuration dur = firstStem.getDuration();
-                NoteDuration dur2 = lastStem.getDuration();
-                Stem middleStem = chords[1].getStem();
-                NoteDuration durMiddle = middleStem.getDuration();
-                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Sixteenth
-                        && dur2 == NoteDuration.Eighth) {
-                    chords[0].getStem().setEnd_two16th_one8th(true);
-                    skipRestOf3NoteCombos = true;
-                }
-            }
-        }
-
-        //an 8th note followed by 2 16th notes
-        if (chords.length == 3 && !skipRestOf3NoteCombos) {
-            int beat = time.getQuarter();
-            if ((chords[0].getStartTime() % beat) == 0) { // only do this if the first note begins on a downbeat
-
-                NoteDuration dur = firstStem.getDuration();
-                NoteDuration dur2 = lastStem.getDuration();
-                Stem middleStem = chords[1].getStem();
-                NoteDuration durMiddle = middleStem.getDuration();
-                if (dur == NoteDuration.Eighth && durMiddle == NoteDuration.Sixteenth
-                        && dur2 == NoteDuration.Sixteenth) {
-                    chords[0].getStem().setEnd_one8th_two16th(true);
-                    skipRestOf3NoteCombos = true;
-                }
-            }
-        }
-
-        //an 16th note followed by 8th note followed by 16th note
-        if (chords.length == 3 && !skipRestOf3NoteCombos) {
-            int beat = time.getQuarter();
-            if ((chords[0].getStartTime() % beat) == 0) { // only do this if the first note begins on a downbeat
-
-                NoteDuration dur = firstStem.getDuration();
-                NoteDuration dur2 = lastStem.getDuration();
-                Stem middleStem = chords[1].getStem();
-                NoteDuration durMiddle = middleStem.getDuration();
-                if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Eighth
-                        && dur2 == NoteDuration.Sixteenth) {
-                    chords[0].getStem().setEnd_16th_8th_16th(true);
-                }
-            }
-        }
-
-
     }
 
     /** We're connecting the stems of two chords using a horizontal beam.
