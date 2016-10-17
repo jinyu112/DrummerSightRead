@@ -931,7 +931,7 @@ public class ChordSymbol implements MusicSymbol {
                 startTime = measure*time.getQuarter()*6;
             }
             else if (time.getNumerator() == 3) {
-                startTime = measure*time.getQuarter()*1;
+                startTime = measure*time.getQuarter() * 3 / 2;
             }
             int beat = time.getQuarter();
 

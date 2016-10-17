@@ -167,6 +167,9 @@ public class Settings extends ActionBarActivity {
             else if (settingsOut[8].equals("6/8")) {
                 spinnerTS.setSelection(5);
             }
+            else if (settingsOut[8].equals("3/8")) {
+                spinnerTS.setSelection(6);
+            }
             else spinnerTS.setSelection(0);
 
 
@@ -259,6 +262,9 @@ public class Settings extends ActionBarActivity {
         }
         else if (spinnerTS.getSelectedItemPosition()==5) {
             settingsInput[8] = "6/8";
+        }
+        else if (spinnerTS.getSelectedItemPosition()==6) {
+            settingsInput[8] = "3/8";
         }
         else  {
             settingsInput[8] = "4/4";

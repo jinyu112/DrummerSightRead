@@ -190,6 +190,11 @@ public class SightReader extends ActionBarActivity {
                 timeDen = 8;
                 timeSig = 6;
             }
+            else if (settingsOut[8].equals("3/8")) {
+                timeNum = 3;
+                timeDen = 8;
+                timeSig = 7;
+            }
             else {
                 timeNum = 4;
                 timeDen = 4;
@@ -298,6 +303,10 @@ public class SightReader extends ActionBarActivity {
         }
         else if (timeSig==6) {
             beat = Beats.two;
+            player.setBeats(beat);
+        }
+        else if (timeSig==7) {
+            beat = Beats.one;
             player.setBeats(beat);
         }
         sheet.setPlayer(player);
