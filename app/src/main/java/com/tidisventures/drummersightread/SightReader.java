@@ -271,6 +271,7 @@ public class SightReader extends ActionBarActivity {
 
         //player.SetMidiFile(midifile, options, sheet);
         player.setTempo((short) tempoInt);
+        player.setTimeNum(timeNum);
         player.setTimeDen(timeDen);
         player.SetMidiFile(midifile, options, sheet);
         player.setMetronomeOn(metronomeOn);

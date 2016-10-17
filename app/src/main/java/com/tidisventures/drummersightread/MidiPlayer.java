@@ -107,6 +107,7 @@ public class MidiPlayer extends LinearLayout {
     private Beats beat;
 
     private int timeDen = 4;
+    private int timeNum = 4;
 
     //play sound?
     private boolean playSoundFlag = false;
@@ -248,16 +249,6 @@ public class MidiPlayer extends LinearLayout {
 
 
         /* Create the Speed bar */
-//        speedText = new TextView(context);
-//        speedText.setText("   Speed:    ");
-//        speedText.setGravity(Gravity.CENTER);
-//        this.addView(speedText);
-//
-//        speedBar = new SeekBar(context);
-//        speedBar.setMax(100);
-//        speedBar.setProgress(100);
-//        this.addView(speedBar);
-
         tempoTV = new TextView(context);
         tempoTV.setText(Integer.toString(bpm));
         tempoTV.setTextColor(Color.WHITE);
@@ -315,19 +306,6 @@ public class MidiPlayer extends LinearLayout {
         playButton.setLayoutParams(params);
         stopButton.setLayoutParams(params);
         fastFwdButton.setLayoutParams(params);
-
-//        params = (LinearLayout.LayoutParams) speedText.getLayoutParams();
-//        params.height = buttonheight;
-//        speedText.setLayoutParams(params);
-//
-//        params = new LinearLayout.LayoutParams(buttonheight * 6, buttonheight);
-//        params.width = buttonheight * 6;
-//        params.bottomMargin = 0;
-//        params.leftMargin = 0;
-//        params.topMargin = 0;
-//        params.rightMargin = 0;
-//        speedBar.setLayoutParams(params);
-//        speedBar.setPadding(pad, pad, pad, pad);
 
     }
 
@@ -542,9 +520,13 @@ public class MidiPlayer extends LinearLayout {
 
         //convert bpm to number of milliseconds equivalent to one measure for starting count of metronome
         // this will need to be updated to remove the hardcoded beatspermeasure and instead use what is specified by user
-        int beatsPerMeasure = 4;
-        double delayForCountOff = (double) 1/((double) bpm/(60*1000*beatsPerMeasure));
-        int roundedDelayForCountOff = (int) Math.round(delayForCountOff) - 100*0; // - 100 because of postDelayed(TimerCallback, 100); line in the doplay() method
+        int countOffBeats = 4;
+        if (timeNum == 3 && timeDen == 4) {
+            countOffBeats = 6;
+        }
+
+        double delayForCountOff = (double) 1/((double) bpm/(60*1000*countOffBeats));
+        int roundedDelayForCountOff = (int) Math.round(delayForCountOff) - 100; // - 100 because of postDelayed(TimerCallback, 100); line in the doplay() method
         if (!metronomeOn) {
             roundedDelayForCountOff = 100;
         }
@@ -903,6 +885,9 @@ private double returnInverseTempo() {
 
     public void setTimeDen(int in) {
         this.timeDen = in;
+    }
+    public void setTimeNum(int in) {
+        this.timeNum = in;
     }
 }
 
