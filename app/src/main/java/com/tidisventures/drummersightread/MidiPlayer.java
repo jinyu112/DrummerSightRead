@@ -68,8 +68,6 @@ public class MidiPlayer extends LinearLayout {
     private ImageButton playButton;   /** The play/pause button */
     private ImageButton stopButton;   /** The stop button */
     private ImageButton fastFwdButton;/** The fast forward button */
-    private TextView speedText;        /** The "Speed" label */
-    private SeekBar speedBar;    /** The seekbar for controlling the playback speed */
 
     private TextView tempoTV;
     private Button plusButton;
@@ -525,8 +523,10 @@ public class MidiPlayer extends LinearLayout {
             countOffBeats = 6;
         }
 
-        double delayForCountOff = (double) 1/((double) bpm/(60*1000*countOffBeats));
-        int roundedDelayForCountOff = (int) Math.round(delayForCountOff) - 100; // - 100 because of postDelayed(TimerCallback, 100); line in the doplay() method
+        int tempBPM = getTempoFromTV();
+        double delayForCountOff = (double) 1/((double) tempBPM/(60*1000*countOffBeats));
+
+        int roundedDelayForCountOff = (int) Math.round(delayForCountOff); // millisecs
         if (!metronomeOn) {
             roundedDelayForCountOff = 100;
         }
