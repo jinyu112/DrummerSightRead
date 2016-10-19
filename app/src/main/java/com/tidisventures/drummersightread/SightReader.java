@@ -31,8 +31,6 @@ import java.util.Random;
  */
 public class SightReader extends ActionBarActivity {
 
-    public static final String MidiDataID = "MidiDataID";
-    public static final String MidiTitleID = "MidiTitleID";
     public static final int settingsRequestCode = 1;
 
     private MidiPlayer player;   /* The play/stop/rewind toolbar */
@@ -71,7 +69,7 @@ public class SightReader extends ActionBarActivity {
     private static boolean accentsFlag = false;
     private static boolean flamsFlag = false;
     private static boolean rollsFlag = false;
-    private static int numMeasures = 6;
+    private static int numMeasures = 8;
     private static int difficulty = 0; //0 is easiest
 
     @Override
@@ -151,6 +149,26 @@ public class SightReader extends ActionBarActivity {
                 difficulty = 6;
             }
 
+
+            if (settingsOut[12].equals("4")) {
+                numMeasures = 4;
+            }
+            else if (settingsOut[12].equals("8")) {
+                numMeasures = 8;
+            }
+            else if (settingsOut[12].equals("12")) {
+                numMeasures = 12;
+            }
+            else if (settingsOut[12].equals("16")) {
+                numMeasures = 16;
+            }
+            else if (settingsOut[12].equals("20")) {
+                numMeasures = 20;
+            }
+            else {
+                numMeasures = 8;
+            }
+
             if (settingsOut[7] != null) {
                 String temp = settingsOut[7];
                 temp = temp.replaceAll("[$,.-]", "");
@@ -209,7 +227,6 @@ public class SightReader extends ActionBarActivity {
 
 //        // Initialize the settings (MidiOptions).
 //        // If previous settings have been saved, used those
-        //midifile = genMidiFile(genNotesMain());
         midifile = genMidiFile(genNotes());
         options = new MidiOptions(midifile);
         SharedPreferences settings = getPreferences(0);
@@ -353,12 +370,10 @@ public class SightReader extends ActionBarActivity {
         Tempo tempo = new Tempo();
         float tempTempo = tempoInt;
         if (timeDen == 8) {
-            tempTempo = tempTempo * 3 / 2;
+            tempTempo = tempTempo * 3 / 2; //real tempo (not metronome tempo)
         }
         tempo.setBpm(tempTempo);
 
-        //com.leff.midi.event.Controller controllerEvent = new com.leff.midi.event.Controller(0,0,64,127);
-        //tempoTrack.insertEvent(controllerEvent);
         tempoTrack.insertEvent(tempo);
         tempoTrack.insertEvent(ts);
 
@@ -387,7 +402,7 @@ public class SightReader extends ActionBarActivity {
         tracks.add(tempoTrack);
         tracks.add(noteTrack);
 
-        com.leff.midi.MidiFile midi = new com.leff.midi.MidiFile(96, tracks);
+        com.leff.midi.MidiFile midi = new com.leff.midi.MidiFile(quarterNote, tracks);
 
 // 4. Write the MIDI data to a file
         try
@@ -509,9 +524,10 @@ public class SightReader extends ActionBarActivity {
         ArrayList<MidiNote> tempnotes = new ArrayList<MidiNote>(12);
 
         //calculate number of pulses in numMeasures
-        int totalPulses = numMeasures * timeNum * 96;
-        int pulsesPerMeasure = timeNum * 96;
+        int totalPulses = numMeasures * timeNum * quarterNote;
+        int pulsesPerMeasure = timeNum * quarterNote;
         if (timeDen == 8) {
+            totalPulses = totalPulses / 2;
             pulsesPerMeasure = pulsesPerMeasure / 2;
         }
 
@@ -629,19 +645,18 @@ public class SightReader extends ActionBarActivity {
             // selecting a rest
             int probRest = 1 + (int)(Math.random() * restDraw);
             int rest;
-            boolean downBeatCheck  = remainingPulsesInMeasure % 96 == 0; //quarternote downbeat
+            boolean downBeatCheck  = remainingPulsesInMeasure % quarterNote == 0; //quarternote downbeat
             boolean upbeatCheck = false;
             boolean sixteenthUpBeatCheck = false;
             if (!downBeatCheck) {
-                upbeatCheck = remainingPulsesInMeasure % 48 == 0; //eighth note upbeat
+                upbeatCheck = remainingPulsesInMeasure % eighthNote== 0; //eighth note upbeat
                 if (!upbeatCheck) {
-                    sixteenthUpBeatCheck = remainingPulsesInMeasure % 24 == 0;
+                    sixteenthUpBeatCheck = remainingPulsesInMeasure % sixteenthNote == 0;
                 }
             }
-//Log.d("Drumm17","remainingPulsesInMeasure: " + remainingPulsesInMeasure);
+
             if (probRest == 1) { //either note or rest
                 rest = 0;
-//                Log.d("Drumm17","rest");
                 int[] tempRestProbs = new int[restProbs.length];
                 System.arraycopy( restProbs, 0, tempRestProbs, 0, restProbs.length );
                 if (downBeatCheck) { // don't allow eighth or sixteenth rests on the downbeat, decrease syncopated note sequence
@@ -678,7 +693,6 @@ public class SightReader extends ActionBarActivity {
                 remainingPulsesInMeasure = remainingPulsesInMeasure - rest;
             } //a rest was selected
             else { //a note was selected
-//                Log.d("Drumm17","note");
                 MidiNote note = new MidiNote(0,0,0,0);
                 note.setChannel(0);
                 note.setNumber(60);
@@ -801,7 +815,7 @@ public class SightReader extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);

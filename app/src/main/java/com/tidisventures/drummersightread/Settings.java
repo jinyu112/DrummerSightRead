@@ -33,6 +33,7 @@ public class Settings extends ActionBarActivity {
     private static  Spinner spinner;
     private static  Spinner spinnerTS;
     private static  Spinner spinnerDiff;
+    private static  Spinner spinnerMeas;
     private static EditText evtempo;
 
     @Override
@@ -87,6 +88,19 @@ public class Settings extends ActionBarActivity {
 
         //default to normal zoom
         spinnerDiff.setSelection(0);
+
+
+        spinnerMeas = (Spinner) findViewById(R.id.settings_dpmeasures);
+// Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapterMeas = ArrayAdapter.createFromResource(this,
+                R.array.measures, android.R.layout.simple_spinner_item);
+// Specify the layout to use when the list of choices appears
+        adapterMeas.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+// Apply the adapter to the spinner
+        spinnerMeas.setAdapter(adapterMeas);
+
+        //default to 8 measures
+        spinnerMeas.setSelection(1);
 
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
@@ -148,6 +162,25 @@ public class Settings extends ActionBarActivity {
             else spinnerDiff.setSelection(6);
 
 
+            if (settingsOut[12].equals("4")) {
+                spinnerMeas.setSelection(0);
+            }
+            else if (settingsOut[12].equals("8")) {
+                spinnerMeas.setSelection(1);
+            }
+            else if (settingsOut[12].equals("12")) {
+                spinnerMeas.setSelection(2);
+            }
+            else if (settingsOut[12].equals("16")) {
+                spinnerMeas.setSelection(3);
+            }
+            else if (settingsOut[12].equals("20")) {
+                spinnerMeas.setSelection(4);
+            }
+            else {
+                spinnerMeas.setSelection(1);
+            }
+
 
             if (settingsOut[8].equals("4/4")) {
                 spinnerTS.setSelection(0);
@@ -194,7 +227,7 @@ public class Settings extends ActionBarActivity {
         boolean checked_sound = cb_sound.isChecked();
         boolean checked_shade = cb_shade.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
@@ -292,6 +325,26 @@ public class Settings extends ActionBarActivity {
             settingsInput[11] = "6";
         }
 
+        if (spinnerMeas.getSelectedItemPosition()==0) {
+            settingsInput[12] = "4";
+        }
+        else if (spinnerMeas.getSelectedItemPosition()==1) {
+            settingsInput[12] = "8";
+        }
+        else if (spinnerMeas.getSelectedItemPosition()==2) {
+            settingsInput[12] = "12";
+        }
+        else if (spinnerMeas.getSelectedItemPosition()==3) {
+            settingsInput[12] = "16";
+        }
+        else if (spinnerMeas.getSelectedItemPosition()==4) {
+            settingsInput[12] = "20";
+        }
+        else {
+            settingsInput[12] = "8";
+        }
+
+
         String evtempo_str = "0";
         evtempo_str = evtempo.getText().toString();
         if (evtempo_str != null) {
@@ -352,7 +405,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);
