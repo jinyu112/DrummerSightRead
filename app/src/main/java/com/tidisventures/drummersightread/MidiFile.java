@@ -656,34 +656,6 @@ public class MidiFile {
                 throw new MidiFileException("Unknown event " + mevent.EventFlag,
                         file.GetOffset()-1);
             }
-//                        try{
-//                Thread.sleep(500);}
-//            catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-            if (njin<500) {
-//                Log.d("Drum14", "Event Number: " + njin);
-//                Log.d("Drum14", "Event del time: " + mevent.DeltaTime);
-//                Log.d("Drum14", "Event start time: " + mevent.StartTime);
-//                Log.d("Drum14", "Event flag: " + mevent.EventFlag);
-//                Log.d("Drum14", "Event channel: " + mevent.Channel);
-//                Log.d("Drum14", "Event note number: " + mevent.Notenumber);
-//                Log.d("Drum14", "Event note vel: " + mevent.Velocity);
-//                Log.d("Drum14", "Event key pressure: " + mevent.KeyPressure);
-//                Log.d("Drum14","Event ctrl number: " + mevent.ControlNum);
-//                Log.d("Drum14","Event ctrl value: " + mevent.ControlValue);
-//                Log.d("Drum14","Event instrument: " + mevent.Instrument);
-//                Log.d("Drum14","Event channel pressure: " + mevent.ChanPressure);
-//                Log.d("Drum14","Event pitch bend: " + mevent.PitchBend);
-//                Log.d("Drum14","Event meta length: " + mevent.Metalength);
-//                Log.d("Drum14","Event value: " + mevent.Value);
-//                Log.d("Drum14","Event meta event: " + mevent.Metaevent);
-//                Log.d("Drum14","Event numerator: " + mevent.Numerator);
-//                Log.d("Drum14","Event denominator: " + mevent.Denominator);
-//                Log.d("Drum14","Event tempo: " + mevent.Tempo);
-//                Log.d("Drum14","--------------------------------------------");
-            }
-            njin++;
         }
 
         return result;

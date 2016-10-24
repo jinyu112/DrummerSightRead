@@ -639,8 +639,20 @@ public class SightReader extends ActionBarActivity {
                 tripletNote, eighthNote, dottedEighthNote, quarterNote, dottedQuarterNote,
                 halfNote, dottedHalfNote, wholeNote}; //must have the same order as noteProbabilities !!!!!!!!!!!!
 
-        while (runningPulseTime < totalPulses) {
+        //this shifting of the runningPulseTime is for the countoff measures (artificial rests)
+       runningPulseTime = pulsesPerMeasure; //start one measure off for count off
+        if ( (timeNum == 3) && timeDen == 8) {
+            runningPulseTime = 4 * pulsesPerMeasure;
+        }
+        else if (timeNum == 2 && timeDen == 4) {
+            runningPulseTime = 2 * pulsesPerMeasure;
+        }
+        else if (timeNum == 6 && timeDen == 8) {
+            runningPulseTime = 2 * pulsesPerMeasure;
+        }
+        totalPulses += runningPulseTime;
 
+        while (runningPulseTime < totalPulses) {
 
             // selecting a rest
             int probRest = 1 + (int)(Math.random() * restDraw);

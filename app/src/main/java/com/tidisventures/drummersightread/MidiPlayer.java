@@ -110,6 +110,7 @@ public class MidiPlayer extends LinearLayout {
     //play sound?
     private boolean playSoundFlag = false;
 
+
     /** Load the play/pause/stop button images */
     public static void LoadImages(Context context) {
         if (rewindImage != null) {
@@ -452,6 +453,20 @@ public class MidiPlayer extends LinearLayout {
             player.setDataSource(input.getFD());
             input.close();
             player.prepare();
+
+            // My AsyncTask is currently not doing work in doInBackground()
+            if(metroTask.getStatus() != AsyncTask.Status.RUNNING && metronomeOn) { //this if statement was put in because on rapid pressing of the stop/start buttons while playing, the async task was executed while it was already running
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
+                    metroTask.setBeat(beat.getNum());
+                    beats = beat.getNum();
+                    metroTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
+                }
+                else {
+                    metroTask.setBeat(beat.getNum());
+                    beats = beat.getNum();
+                    metroTask.execute();
+                }
+            }
             player.start();
 
         }
@@ -498,38 +513,13 @@ public class MidiPlayer extends LinearLayout {
         }
         // playstate is stopped or paused
 
-        // My AsyncTask is currently not doing work in doInBackground()
-        if(metroTask.getStatus() != AsyncTask.Status.RUNNING && metronomeOn) { //this if statement was put in because on rapid pressing of the stop/start buttons while playing, the async task was executed while it was already running
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.HONEYCOMB) {
-                metroTask.setBeat(beat.getNum());
-                beats = beat.getNum();
-                metroTask.executeOnExecutor(AsyncTask.THREAD_POOL_EXECUTOR, (Void[]) null);
-            }
-            else {
-                metroTask.setBeat(beat.getNum());
-                beats = beat.getNum();
-                metroTask.execute();
-            }
-        }
+
 
         // Hide the midi player, wait a little for the view
         // to refresh, and then start playing
         timer.removeCallbacks(TimerCallback);
 
-        //convert bpm to number of milliseconds equivalent to one measure for starting count of metronome
-        // this will need to be updated to remove the hardcoded beatspermeasure and instead use what is specified by user
-        int countOffBeats = 4;
-        if (timeNum == 3 && timeDen == 4) {
-            countOffBeats = 6;
-        }
-
-        int tempBPM = getTempoFromTV();
-        double delayForCountOff = (double) 1/((double) tempBPM/(60*1000*countOffBeats));
-
-        int roundedDelayForCountOff = (int) Math.round(delayForCountOff); // millisecs
-        if (!metronomeOn) {
-            roundedDelayForCountOff = 100;
-        }
+        int roundedDelayForCountOff = 100; // millisecs
         timer.postDelayed(DoPlay, roundedDelayForCountOff);
     }
 

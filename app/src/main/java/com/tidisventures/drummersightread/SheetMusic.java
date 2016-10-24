@@ -381,10 +381,32 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         /* The starttime of the beginning of the measure */
         int measuretime = 0;
 
+        //don't draw measure bars for the countoff rests
+        int startDrawMeasureBarTime = 4 * time.getQuarter();
+        if (time.getDenominator() == 4) {
+            if (time.getNumerator() == 4 || time.getNumerator() == 2) {
+                startDrawMeasureBarTime = 4 * time.getQuarter();
+            }
+            else if ( time.getNumerator() ==3) {
+                startDrawMeasureBarTime = 4 * time.getQuarter();
+            }
+            else if (time.getNumerator() == 6) {
+                startDrawMeasureBarTime = 6 * time.getQuarter();
+            }
+        }
+        else if (time.getDenominator() == 8) {
+                startDrawMeasureBarTime = 4 * time.getQuarter() * 3 / 2;
+        }
+        else {
+            startDrawMeasureBarTime = 4 * time.getQuarter();
+        }
+
         int i = 0;
         while (i < chords.size()) {
             if (measuretime <= chords.get(i).getStartTime()) {
-                symbols.add(new BarSymbol(measuretime) );
+                if (measuretime >= startDrawMeasureBarTime) {
+                    symbols.add(new BarSymbol(measuretime));
+                }
                 measuretime += time.getMeasure();
             }
             else {
@@ -400,7 +422,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         }
 
         /* Add the final vertical bar to the last measure */
-        symbols.add(new BarSymbol(measuretime) );
+        symbols.add(new BarSymbol(measuretime));
         return symbols;
     }
 
@@ -436,7 +458,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         return result;
     }
 
-    /** Return the rest symbols needed to fill the time interval between
+     /** Return the rest symbols needed to fill the time interval between
      * start and end.  If no rests are needed, return nil.
      */
     private
@@ -444,8 +466,32 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         RestSymbol[] result;
         RestSymbol r1, r2;
 
+        //don't count the rests used for countoff
+        int musicStartPulse = 4 * time.getQuarter();
+        if (time.getDenominator() == 4) {
+            if (time.getNumerator() == 4 || time.getNumerator() == 2) {
+                musicStartPulse = 4 * time.getQuarter();
+            }
+            else if ( time.getNumerator() ==3) {
+                musicStartPulse = 4 * time.getQuarter();
+            }
+            else if (time.getNumerator() == 6) {
+                musicStartPulse = 6 * time.getQuarter();
+            }
+        }
+        else if (time.getDenominator() == 8) {
+                musicStartPulse = 4 * time.getQuarter() * 3 / 2;
+        }
+        else {
+            musicStartPulse = 4 * time.getQuarter();
+        }
+
         if (end - start < 0)
             return null;
+
+        if (start < musicStartPulse) {
+            return null;
+        }
 
         NoteDuration dur = time.GetNoteDuration(end - start);
         switch (dur) {
