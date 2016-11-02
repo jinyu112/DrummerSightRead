@@ -772,6 +772,10 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         }
         CreateBeamedChords(allsymbols, time, 2, true);
         CreateBeamedChords(allsymbols, time, 2, false);
+
+        if (time.getDenominator() == 4) { //for 16th triplets
+            CreateBeamedChords(allsymbols, time, 6, true);
+        }
     }
 
 
@@ -1589,13 +1593,6 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
 
 
-
-
-
-
-
-
-
 //this functions were defined by jin
     private ArrayList<MidiTrack> genTrack() {
         ArrayList<MidiTrack> generated_tracks = new ArrayList<MidiTrack>(1);
@@ -1605,34 +1602,6 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         generated_tracks.add(track);
         returnedTracks = generated_tracks;
         return generated_tracks;
-    }
-
-
-    private ArrayList<MidiNote> genNotes() { //this was moved to genNotesMain in main activity. genNOtes is no longer used
-        ArrayList<MidiNote> notes = new ArrayList<MidiNote>(12);
-
-        int numNotes=8*2;
-
-        int runningStartTime = 0;
-        for (int i = 0; i < numNotes; i++) {
-            int randomNum = 1 + (int)(Math.random() * 2);
-            MidiNote note = new MidiNote(0,0,0,0);
-            note.setChannel(0);
-            note.setDuration(48);
-            note.setNumber(60);
-            note.setStartTime(runningStartTime);
-
-            if (randomNum==1) {
-                runningStartTime += 48;
-            }
-            else {
-                runningStartTime += 96;
-            }
-            notes.add(note);
-        }
-        lastStartJin = runningStartTime+1; //plus one because of end of sheet music measure display issue
-        returnedNotes=notes;
-        return notes;
     }
 
 public ArrayList<MidiNote> getNotes() {return returnedNotes;}

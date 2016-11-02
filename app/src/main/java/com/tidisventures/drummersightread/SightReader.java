@@ -45,13 +45,14 @@ public class SightReader extends ActionBarActivity {
     private static final int quarterNote = 96;
     private static final int halfNote = quarterNote * 2;
     private static final int wholeNote = quarterNote * 4;
-    private static final int dottedQuarterNote = 96 * 3 / 2;
-    private static final int dottedHalfNote = 96 * 3;
-    private static final int eighthNote = 96 / 2;
+    private static final int dottedQuarterNote = quarterNote * 3 / 2;
+    private static final int dottedHalfNote = quarterNote * 3;
+    private static final int eighthNote = quarterNote / 2;
     private static final int dottedEighthNote = eighthNote * 3 / 2;
-    private static final int tripletNote = 96 / 3 ;
-    private static final int sixteenthNote= 96 / 4;
-    private static final int thirtysecondNote= 96 / 8;
+    private static final int tripletNote = quarterNote / 3 ;
+    private static final int sixteenthNote= quarterNote / 4;
+    private static final int sixteenthTripletNote = quarterNote / 6;
+    private static final int thirtysecondNote= quarterNote / 8;
 
 
 
@@ -464,61 +465,6 @@ public class SightReader extends ActionBarActivity {
         return null;
     }
 
-    private ArrayList<MidiNote> genNotesMain() {
-        ArrayList<MidiNote> tempnotes = new ArrayList<MidiNote>(12);
-
-        int numNotes=8*4;
-
-        int runningStartTime = 0;
-        for (int i = 0; i < numNotes; i++) {
-
-            MidiNote note = new MidiNote(0,0,0,0);
-            note.setChannel(0);
-            note.setDuration(48);
-            note.setNumber(60);
-            note.setStartTime(runningStartTime);
-
-            //accents
-            int randomNumAccent = 1 + (int)(Math.random() * 8);
-            if (randomNumAccent==1) {
-                note.setAccentNum(1);
-            }
-            else if (randomNumAccent==2) {
-                note.setAccentNum(2);
-            }
-            //rolls
-            int randomNumRoll = 1 + (int)(Math.random() * 50);
-            if (randomNumRoll<6) { //10%
-                note.setRollNum(1);
-            }
-            else if (randomNumRoll<9) { //6%
-                note.setRollNum(2);
-            }
-            else if (randomNumRoll==10) { //2%
-                note.setRollNum(3);
-            }
-
-            //flams
-            int randomNumFlam = 1 + (int)(Math.random() * 5);
-            if (randomNumFlam==1) {
-                note.setFlamNum(1);
-            }
-
-            //notes
-            int randomNum = 1 + (int)(Math.random() * 4);
-            if (randomNum < 4) {
-                runningStartTime += 48;
-            }
-            else {
-                runningStartTime += 96;
-            }
-            tempnotes.add(note);
-        }
-
-        notes=tempnotes;
-        return tempnotes;
-    }
-
 
     private ArrayList<MidiNote> genNotes() {
         ArrayList<MidiNote> tempnotes = new ArrayList<MidiNote>(12);
@@ -595,12 +541,12 @@ public class SightReader extends ActionBarActivity {
             restProbs[4] = 0;
         }
         else if (difficulty == 2) {
-            specialNoteSeqProb1 = 0; //0 for selectedNote
-            specialNoteSeqProb2 = 0; //1 for selectedNote
+            specialNoteSeqProb1 = 10; //0 for selectedNote
+            specialNoteSeqProb2 = 10; //1 for selectedNote
             sixteenthNoteProb = 25+15; //2 for selectedNote
             tripletNoteProb = 0; //3 for selectedNote
             eighthNoteProb = 40; //20 4 for selectedNote
-            dottedEighthNoteProb = 1*0; //5 for selectedNote
+            dottedEighthNoteProb = 1; //5 for selectedNote
             quarterNoteProb = 30*0; //6 for selectedNote
             dottedQuarterNoteProb = 5*0; //5 7 for selectedNote
             halfNoteProb =  0; //8 for selectedNote
@@ -625,6 +571,10 @@ public class SightReader extends ActionBarActivity {
             restProbs[3] = 2;
             restProbs[4] = 0;
 
+        }
+
+        if (!accentsFlag || !flamsFlag || !rollsFlag) { //don't draw special note group2 if accents and flams and rolls are not set
+            specialNoteSeqProb2 = 0;
         }
 
 
@@ -723,11 +673,16 @@ public class SightReader extends ActionBarActivity {
                 }
 
                 // selecting a note
-                int selectedNote = rouletteSelect(returnNoteProbArray(remainingPulsesInMeasure, tempNoteProbs, noteArray));
+                int selectedNote = rouletteSelect(returnNoteProbArray(remainingPulsesInMeasure, tempNoteProbs, noteArray, downBeatCheck));
+                ArrayList<MidiNote> specialNotes = new ArrayList<MidiNote>(1);
                 if (selectedNote == 0) { // specialNoteSeq1
-                    //note.setDuration(48);
+                    specialNotes = genSpecialNotes1(runningPulseTime);
+                    runningPulseTime += quarterNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - quarterNote;
                 } else if (selectedNote == 1) { // specialNoteSeq2
-                    //note.setDuration(48);
+                    specialNotes = genSpecialNotes2(runningPulseTime);
+                    runningPulseTime += halfNote;
+                    remainingPulsesInMeasure = remainingPulsesInMeasure - halfNote;
                 } else if (selectedNote == 2) { //sixteenthNote
                     note.setDuration(sixteenthNote);
                     runningPulseTime += sixteenthNote;
@@ -806,7 +761,18 @@ public class SightReader extends ActionBarActivity {
                     }
                 }
 
-                tempnotes.add(note);
+                if (selectedNote ==0 || selectedNote == 1) {
+                    if (specialNotes != null) {
+                        if (specialNotes.size() > 0) {
+                            for (int ii = 0; ii < specialNotes.size(); ii++) {
+                                tempnotes.add(specialNotes.get(ii));
+                            }
+                        }
+                    }
+                }
+                else {
+                    tempnotes.add(note);
+                }
             } //else, a note was selected
 
             if (remainingPulsesInMeasure == 0) {
@@ -818,6 +784,14 @@ public class SightReader extends ActionBarActivity {
 
 
         } //while loop
+
+        //make the last note an eighth note to avoid that cutoff issue
+        MidiNote note = new MidiNote(0,0,0,0);
+        note.setChannel(1);
+        note.setNumber(60);
+        note.setStartTime(runningPulseTime);
+        note.setDuration(eighthNote);
+        tempnotes.add(note);
 
         notes = tempnotes;
         return tempnotes;
@@ -873,13 +847,18 @@ public class SightReader extends ActionBarActivity {
         return weight.length - 1;
     }
 
-    private int[] returnNoteProbArray(int remainPulsesInMeasure, int[] fullNoteProbArray, int[] fullNoteDurationArray) {
+    private int[] returnNoteProbArray(int remainPulsesInMeasure, int[] fullNoteProbArray, int[] fullNoteDurationArray, boolean downBeatCheck) {
         int[] noteProbArray = new int[fullNoteDurationArray.length];
         for (int i = 0; i < fullNoteProbArray.length; i++) {
             if (fullNoteDurationArray[i] <= remainPulsesInMeasure) {
                 noteProbArray[i] = fullNoteProbArray[i];
             }
             else noteProbArray[i] = 0;
+
+            if (!downBeatCheck) {
+                noteProbArray[0] = 0; //don't allow specialnote groups to be returned unless on a downbeat
+                noteProbArray[1] = 0; //don't allow specialnote groups to be returned unless on a downbeat
+            }
         }
         return noteProbArray;
     }
@@ -900,6 +879,465 @@ public class SightReader extends ActionBarActivity {
     private double randUniformPositive() {
         // easiest implementation
         return new Random().nextDouble();
+    }
+
+
+
+    //special notes generation method 1
+    private ArrayList<MidiNote> genSpecialNotes1(int startPulseTime) {
+        // this function is accessed if a special note group is selected
+        // all these note groups total to one quarter note count
+        // must return something
+        ArrayList<MidiNote> specialNotes = new ArrayList<MidiNote>();
+        int numSpecialNoteGroups = 7;
+        if (!accentsFlag && !flamsFlag && rollsFlag ) numSpecialNoteGroups = 5;
+        else if (!accentsFlag && !flamsFlag && !rollsFlag) numSpecialNoteGroups = 4;
+
+        int whichNoteGroup = 1 + (int) (Math.random() * numSpecialNoteGroups);
+
+        int accentsForNoteGroups = 6;
+        int accentNotes = 1 + (int) (Math.random() * accentsForNoteGroups);
+
+        int flamsForNoteGroups = 6;
+        int flamNotes = 1 + (int) (Math.random() * flamsForNoteGroups);
+
+        int rollForNoteGroups = 5;
+        int rollNotes = 1 + (int) (Math.random() * rollForNoteGroups);
+
+        int runningPulseTime = startPulseTime;
+        if (timeDen == 4) {
+            if (whichNoteGroup == 1) { //triplets
+                for (int i = 0; i < 3; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(tripletNote);
+
+                    if (accentsFlag) {
+                        if (accentNotes == 1) {
+                            if (i == 0) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                        else if (accentNotes == 2) {
+                            if (i == 0 || i == 2) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                    }
+
+                    if (flamsFlag) {
+                        if (flamNotes == 1) {
+                            if (i == 0) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 2) {
+                            if (i == 1) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 3) {
+                            if (i == 2) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                    }
+
+                    if (rollsFlag) {
+                        if (rollNotes == 1) {
+                            if (i == 0) {
+                                note.setRollNum(1);
+                            }
+                        }
+                        else if (rollNotes == 2) {
+                            if (i == 0 || i == 1 || i == 2) {
+                                note.setRollNum(1);
+                            }
+                        }
+                        else if (rollNotes == 3) {
+                            if (i == 0 || i == 1 ) {
+                                note.setRollNum(1);
+                            }
+                        }
+                        else if (rollNotes == 4) {
+                            if (i == 1 || i == 2) {
+                                note.setRollNum(1);
+                            }
+                        }
+                    }
+
+                    runningPulseTime += tripletNote;
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 2) { //32
+                for (int i = 0; i < 8; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(thirtysecondNote);
+
+                    if (accentsFlag) {
+                        if (accentNotes == 1) {
+                            if (i == 0) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                        else if (accentNotes == 2) {
+                            if (i == 0 || i == 4) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                        else if (accentNotes == 3) {
+                            if (i == 3 || i == 4) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                    }
+
+                    if (flamsFlag) {
+                        if (flamNotes == 1) {
+                            if (i == 0) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 2) {
+                            if (i == 4) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 3) {
+                            if (i == 0 || i == 4) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                    }
+
+                    runningPulseTime += thirtysecondNote;
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 3) { //4 32nd notes
+                for (int i = 0; i < 4; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(thirtysecondNote);
+
+                    if (accentsFlag) {
+                        if (accentNotes == 1) {
+                            if (i == 0) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                        else if (accentNotes == 2) {
+                            if (i == 0 || i == 3) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                    }
+
+                    if (flamsFlag) {
+                        if (flamNotes == 1) {
+                            if (i == 0) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 2) {
+                            if (i == 2) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                    }
+
+                    runningPulseTime += thirtysecondNote;
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 4) { // 16th triplets
+                for (int i = 0; i < 6; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(sixteenthTripletNote);
+                    runningPulseTime += sixteenthTripletNote;
+
+                    if (accentsFlag) {
+                        if (accentNotes == 1) {
+                            if (i == 0) {
+                                note.setAccentNum(2);
+                            }
+                        } else if (accentNotes == 2) {
+                            if (i == 0 || i == 3) {
+                                note.setAccentNum(2);
+                            }
+                        } else if (accentNotes == 3) {
+                            if (i == 0 || i == 2 || i == 3) {
+                                note.setAccentNum(2);
+                            }
+                        }
+                    }
+
+                    if (flamsFlag) {
+                        if (flamNotes == 1) {
+                            if (i == 0) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 2) {
+                            if (i == 1) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 3) {
+                            if (i == 2) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 4) {
+                            if (i == 0 || i == 3) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 5) {
+                            if (i == 5) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                    }
+
+                    if (rollsFlag) {
+                        if (rollNotes == 1) {
+                            if (i == 0) {
+                                note.setRollNum(1);
+                            }
+                        }
+                        else if (rollNotes == 2) {
+                            int num = 1 + (int) (Math.random() * 4);
+                            num = num - 1;
+                            if (i == num || i == 1 + num || i == 2 + num) {
+                                note.setRollNum(1);
+                            }
+                        }
+                        else if (rollNotes == 3) {
+                            if (i == 0 || i == 1 ) {
+                                note.setRollNum(1);
+                            }
+                        }
+                        else if (rollNotes == 4) {
+                            int num = 1 + (int) (Math.random() * 6);
+                            if (i == num) {
+                                note.setRollNum(1);
+                            }
+                        }
+                    }
+
+                    specialNotes.add(note);
+
+                }
+            }
+            else if (whichNoteGroup == 5) { //5 stroke roll
+                for (int i = 0; i < 2; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(eighthNote);
+                    if (i == 0) {
+                        note.setRollNum(2);
+                    }
+
+                    else if (i == 1 && accentsFlag) {
+                        note.setAccentNum(2);
+                    }
+                    runningPulseTime += eighthNote;
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 6) { //flam accent
+                for (int i = 0; i < 3; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(tripletNote);
+                    if (i == 0) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    runningPulseTime += tripletNote;
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 7) { //flam tap
+                for (int i = 0; i < 4; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(sixteenthNote);
+                    if (i == 0 || i == 2) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    runningPulseTime += sixteenthNote;
+                    specialNotes.add(note);
+                }
+            }
+        }
+        else if (timeDen == 8) {
+
+        }
+        return specialNotes;
+    }
+
+
+    //special notes generation method 2
+    private ArrayList<MidiNote> genSpecialNotes2(int startPulseTime) {
+        // this function is accessed if a special note group is selected
+        // this function only called if accents and flams and rolls are set to true
+        // all these note groups total to one half note count
+        // must return something
+        ArrayList<MidiNote> specialNotes = new ArrayList<MidiNote>();
+        int numSpecialNoteGroups = 7;
+
+        int whichNoteGroup = 1 + (int) (Math.random() * numSpecialNoteGroups);
+        int runningPulseTime = startPulseTime;
+        if (timeDen == 4) {
+            if (whichNoteGroup == 1) { //flamacue
+                for (int i = 0; i < 5; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    if (i != 4) {
+                        note.setDuration(sixteenthNote);
+                        runningPulseTime += sixteenthNote;
+                    }
+                    else {
+                        note.setDuration(quarterNote);
+                        runningPulseTime += quarterNote;
+                    }
+
+                    if (i==0) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    else if (i == 4) {
+                        note.setFlamNum(1);
+                    }
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 2) { // single paradiddle
+                for (int i = 0; i < 8; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(sixteenthNote);
+                    if (i == 0 || i == 4) {
+                        note.setAccentNum(2);
+                    }
+                    runningPulseTime += sixteenthNote;
+                    specialNotes.add(note);
+
+                }
+            }
+            else if (whichNoteGroup == 3) { //flam paradiddle
+                for (int i = 0; i < 8; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(sixteenthNote);
+                    if (i == 0 || i == 4) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    runningPulseTime += sixteenthNote;
+                    specialNotes.add(note);
+
+                }
+            }
+            else if (whichNoteGroup == 4) { //pata fla fla
+                for (int i = 0; i < 8; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(sixteenthNote);
+                    if (i == 0 || i == 3 || i == 4 || i == 7) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    runningPulseTime += sixteenthNote;
+                    specialNotes.add(note);
+
+                }
+            }
+            else if (whichNoteGroup == 5) { //inverted flam tap
+                for (int i = 0; i < 8; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(sixteenthNote);
+                    if (i == 0 || i == 2 || i == 4 || i == 6) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    runningPulseTime += sixteenthNote;
+                    specialNotes.add(note);
+
+                }
+            }
+            else if (whichNoteGroup == 6) { // triplet notes 1
+                for (int i = 0; i < 6; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(tripletNote);
+                    if (i == 0 || i == 3) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    else if (i == 1 || i == 4) {
+                        note.setRollNum(1);
+                    }
+                    runningPulseTime += tripletNote;
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 7) { // triplet notes 2
+                for (int i = 0; i < 6; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(tripletNote);
+                    if (i == 0 || i == 3) {
+                        note.setAccentNum(2);
+                        note.setFlamNum(1);
+                    }
+                    else if (i == 1 || i == 4 || i ==0 || i == 3) {
+                        note.setRollNum(1);
+                    }
+                    runningPulseTime += tripletNote;
+                    specialNotes.add(note);
+                }
+            }
+        }
+        else if (timeDen == 8) {
+
+        }
+        return specialNotes;
     }
 
 }

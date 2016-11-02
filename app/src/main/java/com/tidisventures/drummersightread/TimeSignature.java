@@ -103,6 +103,8 @@ public class TimeSignature implements Serializable {
             return NoteDuration.Triplet;
         else if (duration >=  3*whole/64)
             return NoteDuration.Sixteenth;
+        else if (duration >=  5*whole/(64*2))
+            return NoteDuration.SixteenthTriplet;
         else
             return NoteDuration.ThirtySecond;
     }
@@ -136,6 +138,7 @@ public class TimeSignature implements Serializable {
             case Eighth:        return eighth;
             case Triplet:       return quarternote/3;
             case Sixteenth:     return sixteenth;
+            case SixteenthTriplet: return quarternote/6;
             case ThirtySecond:  return sixteenth/2;
             default:                         return 0;
         }

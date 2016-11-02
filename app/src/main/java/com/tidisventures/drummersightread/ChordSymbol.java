@@ -920,6 +920,38 @@ public class ChordSymbol implements MusicSymbol {
                     }
                 }
             }
+
+            // triplets
+            boolean triplets = false;
+            if (chords.length == 3) {
+                int beat = time.getQuarter();
+                if ((chords[0].getStartTime() % beat) == 0) {
+                    Stem middleStem = chords[1].getStem();
+                    NoteDuration durMiddle = middleStem.getDuration();
+                    if (dur == NoteDuration.Triplet && durMiddle == NoteDuration.Triplet
+                            && durLast == NoteDuration.Triplet) {
+                        triplets = true;
+                        chords[0].getStem().setEnd_triplet(true);
+                        return triplets;
+                    }
+                }
+            }
+
+            // sixteenth triplets
+            boolean sixteenthTriplets = false;
+            if (chords.length == 6) {
+                int beat = time.getQuarter();
+                if ((chords[0].getStartTime() % beat) == 0) {
+                    Stem middleStem = chords[1].getStem();
+                    NoteDuration durMiddle = middleStem.getDuration();
+                    if (dur == NoteDuration.SixteenthTriplet && durMiddle == NoteDuration.SixteenthTriplet
+                            && durLast == NoteDuration.SixteenthTriplet) {
+                        sixteenthTriplets = true;
+                        chords[0].getStem().setEnd_16thtriplet(true);
+                        return sixteenthTriplets;
+                    }
+                }
+            }
         } // end time sig denom 4 if
 
         //note combos in X/8 time sig

@@ -48,6 +48,8 @@ public class Stem {
     private boolean end_two16th_one8th = false;
     private boolean end_one8th_two16th = false;
     private boolean end_16th_8th_16th = false;
+    private boolean end_triplets = false;
+    private boolean end_16thtriplets = false;
 
     //time sig denom 8
     private boolean end_8th_2_16th_8th  = false;
@@ -93,6 +95,8 @@ public class Stem {
     public void setEnd_two16th_one8th(boolean in) { end_two16th_one8th = in;}
     public void setEnd_one8th_two16th(boolean in) { end_one8th_two16th = in;}
     public void setEnd_16th_8th_16th(boolean in) { end_16th_8th_16th = in;}
+    public void setEnd_triplet(boolean in) { end_triplets = in;}
+    public void setEnd_16thtriplet(boolean in) { end_16thtriplets = in;}
 
     public void setEnd_2_16th_2_8th(boolean in) { end_2_16th_2_8th = in;}
     public void setEnd_8th_2_16th_8th(boolean in) { end_8th_2_16th_8th = in;}
@@ -136,6 +140,8 @@ public class Stem {
         end_two16th_one8th = false;
         end_one8th_two16th = false;
         end_16th_8th_16th = false;
+        end_triplets = false;
+        end_16thtriplets = false;
 
         //X/8 flags
         end_8th_2_16th_8th = false;
@@ -159,6 +165,9 @@ public class Stem {
             WhiteNote w = top;
             w = w.Add(6);
             if (duration == NoteDuration.Sixteenth) {
+                w = w.Add(2);
+            }
+            else if (duration == NoteDuration.SixteenthTriplet) {
                 w = w.Add(2);
             }
             else if (duration == NoteDuration.ThirtySecond) {
@@ -404,7 +413,7 @@ public class Stem {
             if (duration == NoteDuration.Eighth ||
                     duration == NoteDuration.DottedEighth ||
                     duration == NoteDuration.Triplet ||
-                    duration == NoteDuration.Sixteenth ||
+                    duration == NoteDuration.Sixteenth || duration == NoteDuration.SixteenthTriplet ||
                     duration == NoteDuration.ThirtySecond) {
 
                 if (end_one8th_two16th) { // X/4
@@ -462,6 +471,13 @@ public class Stem {
                     canvas.drawLine(xend - width_to_pair / 6 , ystart, xend, yend, paint); //16th note horizontal stub 2
                     yend -= SheetMusic.NoteHeight;
                 }
+                else if (end_triplets) {
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                    paint.setTextSize(30);
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setStrokeWidth(1);
+                    canvas.drawText("3", xstart + width_to_pair * 2 / 5 , ystart - SheetMusic.NoteWidth, paint);
+                }
                 else {
                     canvas.drawLine(xstart, ystart, xend, yend, paint);
 
@@ -481,7 +497,7 @@ public class Stem {
             }
 
             if (duration == NoteDuration.Sixteenth ||
-                    duration == NoteDuration.ThirtySecond) {
+                    duration == NoteDuration.ThirtySecond || duration == NoteDuration.SixteenthTriplet) {
 
                 if (end_two16th_one8th) {
                     canvas.drawLine(xstart, ystart, xend - width_to_pair / 2, yend, paint);
@@ -533,12 +549,18 @@ public class Stem {
                     canvas.drawLine(xstart, ystart, xstart, yend + SheetMusic.NoteHeight, paint);
                     paint.setStrokeWidth(SheetMusic.NoteHeight / 2);
                     canvas.drawLine(xstart + width_to_pair / 2, ystart, xend, yend, paint);
+                } else if (end_16thtriplets) {
+                    canvas.drawLine(xstart, ystart, xend, yend, paint);
+                    paint.setTextSize(30);
+                    paint.setStyle(Paint.Style.FILL);
+                    paint.setStrokeWidth(1);
+                    canvas.drawText("3", xstart + width_to_pair * 3 / 20, ystart - SheetMusic.NoteWidth * 3/2, paint);
+                    canvas.drawText("3", xend - width_to_pair / 4, ystart - SheetMusic.NoteWidth* 3/2, paint);
                 }
                 else {
                     canvas.drawLine(xstart, ystart, xend, yend, paint);
                 }
             }
-
 
             ystart += SheetMusic.NoteHeight;
             yend += SheetMusic.NoteHeight;
