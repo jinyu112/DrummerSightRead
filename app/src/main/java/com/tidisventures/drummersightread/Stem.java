@@ -554,8 +554,8 @@ public class Stem {
                     paint.setTextSize(30);
                     paint.setStyle(Paint.Style.FILL);
                     paint.setStrokeWidth(1);
-                    canvas.drawText("3", xstart + width_to_pair * 3 / 20, ystart - SheetMusic.NoteWidth * 3/2, paint);
-                    canvas.drawText("3", xend - width_to_pair / 4, ystart - SheetMusic.NoteWidth* 3/2, paint);
+                    canvas.drawText("3", xstart + width_to_pair * 3 / 20, ystart - SheetMusic.NoteWidth * 2, paint);
+                    canvas.drawText("3", xend - width_to_pair / 4, ystart - SheetMusic.NoteWidth * 2, paint);
                 }
                 else {
                     canvas.drawLine(xstart, ystart, xend, yend, paint);

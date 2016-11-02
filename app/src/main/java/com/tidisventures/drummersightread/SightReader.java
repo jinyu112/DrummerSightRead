@@ -895,10 +895,10 @@ public class SightReader extends ActionBarActivity {
 
         int whichNoteGroup = 1 + (int) (Math.random() * numSpecialNoteGroups);
 
-        int accentsForNoteGroups = 6;
+        int accentsForNoteGroups = 5;
         int accentNotes = 1 + (int) (Math.random() * accentsForNoteGroups);
 
-        int flamsForNoteGroups = 6;
+        int flamsForNoteGroups = 5;
         int flamNotes = 1 + (int) (Math.random() * flamsForNoteGroups);
 
         int rollForNoteGroups = 5;
@@ -1027,7 +1027,7 @@ public class SightReader extends ActionBarActivity {
                     note.setNumber(60);
                     note.setStartTime(runningPulseTime);
                     note.setDuration(thirtysecondNote);
-
+                    accentNotes = 1 + (int) (Math.random() * 3);
                     if (accentsFlag) {
                         if (accentNotes == 1) {
                             if (i == 0) {
@@ -1041,6 +1041,7 @@ public class SightReader extends ActionBarActivity {
                         }
                     }
 
+                    flamNotes = 1 + (int) (Math.random() * 3);
                     if (flamsFlag) {
                         if (flamNotes == 1) {
                             if (i == 0) {
@@ -1049,6 +1050,11 @@ public class SightReader extends ActionBarActivity {
                         }
                         else if (flamNotes == 2) {
                             if (i == 2) {
+                                note.setFlamNum(1);
+                            }
+                        }
+                        else if (flamNotes == 3) {
+                            if (i == 2 || i == 0) {
                                 note.setFlamNum(1);
                             }
                         }
@@ -1204,7 +1210,7 @@ public class SightReader extends ActionBarActivity {
         // all these note groups total to one half note count
         // must return something
         ArrayList<MidiNote> specialNotes = new ArrayList<MidiNote>();
-        int numSpecialNoteGroups = 7;
+        int numSpecialNoteGroups = 8;
 
         int whichNoteGroup = 1 + (int) (Math.random() * numSpecialNoteGroups);
         int runningPulseTime = startPulseTime;
@@ -1330,6 +1336,23 @@ public class SightReader extends ActionBarActivity {
                         note.setRollNum(1);
                     }
                     runningPulseTime += tripletNote;
+                    specialNotes.add(note);
+                }
+            }
+            else if (whichNoteGroup == 8) { //2 5 stroke rolls
+                for (int i = 0; i < 4; i++) {
+                    MidiNote note = new MidiNote(0, 0, 0, 0);
+                    note.setChannel(0);
+                    note.setNumber(60);
+                    note.setStartTime(runningPulseTime);
+                    note.setDuration(eighthNote);
+                    if (i == 0 || i == 2) {
+                        note.setRollNum(2);
+                    }
+                    else if ( (i == 1 || i == 3)&& accentsFlag) {
+                        note.setAccentNum(2);
+                    }
+                    runningPulseTime += eighthNote;
                     specialNotes.add(note);
                 }
             }

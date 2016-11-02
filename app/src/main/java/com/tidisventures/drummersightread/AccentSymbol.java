@@ -12,11 +12,20 @@ public class AccentSymbol implements MusicSymbol {
     private WhiteNote whitenote;  /** The white note where the symbol occurs */
     private Clef clef;            /** Which clef the symbols is in */
     private int width;            /** Width of symbol */
+    private NoteDuration dur = NoteDuration.Quarter;
 
     /**
      * Create a new AccidSymbol with the given accidental, that is
      * displayed at the given note in the given clef.
      */
+    public AccentSymbol(Accent accent, WhiteNote note, Clef clef, NoteDuration dur_in) {
+        this.accent = accent;
+        this.whitenote = note;
+        this.clef = clef;
+        this.dur = dur_in;
+        width = getMinWidth();
+    }
+
     public AccentSymbol(Accent accent, WhiteNote note, Clef clef) {
         this.accent = accent;
         this.whitenote = note;
@@ -98,6 +107,13 @@ public class AccentSymbol implements MusicSymbol {
 
 
         int ystart = ynote  - SheetMusic.NoteHeight*3 - 8;
+
+        if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet) {
+            ystart = ystart - SheetMusic.NoteHeight;
+        }
+        else if (dur == NoteDuration.ThirtySecond) {
+            ystart = ystart - SheetMusic.NoteHeight * 2;
+        }
         int yend = ystart - SheetMusic.NoteHeight;
         int x = SheetMusic.NoteHeight / 2;
         paint.setStrokeWidth(2);
@@ -115,6 +131,12 @@ public class AccentSymbol implements MusicSymbol {
     public void DrawRegularAccent(Canvas canvas, Paint paint, int ynote) {
 
         int ystart = ynote - SheetMusic.NoteHeight*3 - 8;
+        if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet) {
+            ystart = ystart - SheetMusic.NoteHeight;
+        }
+        else if (dur == NoteDuration.ThirtySecond) {
+            ystart = ystart - SheetMusic.NoteHeight * 2;
+        }
         int yend = ystart - 6;
         int x = SheetMusic.NoteHeight/2 - 2;
         paint.setStrokeWidth(2);

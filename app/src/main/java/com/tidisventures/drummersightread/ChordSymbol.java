@@ -248,7 +248,7 @@ public class ChordSymbol implements MusicSymbol {
         int i = 0;
         for (NoteData n : notedata) {
             if (n.accent != Accent.None) {
-                accentsymbols[i] = new AccentSymbol(n.accent, n.whitenote, clef);
+                accentsymbols[i] = new AccentSymbol(n.accent, n.whitenote, clef, n.duration);
                 i++;
             }
         }
