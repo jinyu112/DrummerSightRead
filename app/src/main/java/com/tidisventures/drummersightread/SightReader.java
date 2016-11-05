@@ -90,11 +90,9 @@ public class SightReader extends ActionBarActivity {
 
             if (settingsOut[13].equals("1")) {
                 tripletFlag = true;
-                Log.d("Drumm17", "tripletFlag: true"); //syncopation
             }
             else {
                 tripletFlag = false;
-                Log.d("Drumm17", "tripletFlag: false"); //syncopation
             }
 
             if (settingsOut[1].equals("1")) {
@@ -585,6 +583,11 @@ public class SightReader extends ActionBarActivity {
         }
 
         if (!accentsFlag || !flamsFlag || !rollsFlag) { //don't draw special note group2 if accents and flams and rolls are not set
+            specialNoteSeqProb2 = 0;
+        }
+
+        if (timeDen == 8) { //don't allow the specialnote groups to be selected whe in X/8 time (may change in the future)
+            specialNoteSeqProb1 = 0;
             specialNoteSeqProb2 = 0;
         }
 
