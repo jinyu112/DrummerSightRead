@@ -106,7 +106,7 @@ public class AccentSymbol implements MusicSymbol {
     public void DrawMarcato(Canvas canvas, Paint paint, int ynote) {
 
 
-        int ystart = ynote  - SheetMusic.NoteHeight*3 - 8;
+        int ystart = ynote  - SheetMusic.NoteHeight * 7 / 2;
 
         if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet) {
             ystart = ystart - SheetMusic.NoteHeight;
@@ -117,10 +117,10 @@ public class AccentSymbol implements MusicSymbol {
         int yend = ystart - SheetMusic.NoteHeight;
         int x = SheetMusic.NoteHeight / 2;
         paint.setStrokeWidth(2);
-        canvas.drawLine(x, ystart, x + 6, yend, paint);
-        x += SheetMusic.NoteHeight/2 + 4;
+        canvas.drawLine(x, ystart, x + SheetMusic.NoteHeight / 2, yend, paint);
+        x += SheetMusic.NoteHeight;
         paint.setStrokeWidth(3);
-        canvas.drawLine(x, ystart, x - 6, yend, paint);
+        canvas.drawLine(x, ystart, x - + SheetMusic.NoteHeight / 2, yend, paint);
 
         paint.setStrokeWidth(1);
     }
@@ -130,18 +130,18 @@ public class AccentSymbol implements MusicSymbol {
      */
     public void DrawRegularAccent(Canvas canvas, Paint paint, int ynote) {
 
-        int ystart = ynote - SheetMusic.NoteHeight*3 - 8;
+        int ystart = ynote - SheetMusic.NoteHeight * 7 / 2;
         if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet || dur == NoteDuration.Eighth) {
             ystart = ystart - SheetMusic.NoteHeight;
         }
         else if (dur == NoteDuration.ThirtySecond) {
             ystart = ystart - SheetMusic.NoteHeight * 2;
         }
-        int yend = ystart - 6;
-        int x = SheetMusic.NoteHeight/2 - 2;
+        int yend = ystart - SheetMusic.NoteHeight / 2;
+        int x = SheetMusic.NoteHeight/2 ;
         paint.setStrokeWidth(2);
         canvas.drawLine(x, ystart, x + SheetMusic.NoteWidth, yend, paint);
-        canvas.drawLine(x, ystart - 6*2, x + SheetMusic.NoteWidth, yend, paint);
+        canvas.drawLine(x, ystart - SheetMusic.NoteHeight * 3 / 4, x + SheetMusic.NoteWidth, yend, paint);
 
         paint.setStrokeWidth(1);
     }
