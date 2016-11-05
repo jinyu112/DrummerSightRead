@@ -164,10 +164,7 @@ public class Stem {
         if (direction == Up) {
             WhiteNote w = top;
             w = w.Add(6);
-            if (duration == NoteDuration.Sixteenth) {
-                w = w.Add(2);
-            }
-            else if (duration == NoteDuration.SixteenthTriplet) {
+            if (duration == NoteDuration.Sixteenth || duration == NoteDuration.SixteenthTriplet) {
                 w = w.Add(2);
             }
             else if (duration == NoteDuration.ThirtySecond) {

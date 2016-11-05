@@ -30,6 +30,7 @@ public class Settings extends ActionBarActivity {
     private static CheckBox cb_scroll;
     private static CheckBox cb_sound;
     private static CheckBox cb_shade;
+    private static CheckBox cb_trip;
     private static  Spinner spinner;
     private static  Spinner spinnerTS;
     private static  Spinner spinnerDiff;
@@ -48,6 +49,7 @@ public class Settings extends ActionBarActivity {
         cb_scroll = (CheckBox) findViewById(R.id.settings_cbscroll);
         cb_sound = (CheckBox) findViewById(R.id.settings_cbsound);
         cb_shade = (CheckBox) findViewById(R.id.settings_cbshade);
+        cb_trip = (CheckBox) findViewById(R.id.settings_cbtrip);
         evtempo = (EditText) findViewById(R.id.settings_evtempo);
         evtempo.setGravity(Gravity.CENTER);
 
@@ -129,6 +131,10 @@ public class Settings extends ActionBarActivity {
 
             if (settingsOut[10].equals("1")) {
                 cb_shade.setChecked(true);
+            }
+
+            if (settingsOut[13].equals("1")) {
+                cb_trip.setChecked(true);
             }
 
             if (settingsOut[6].equals("0")) {
@@ -226,12 +232,18 @@ public class Settings extends ActionBarActivity {
         boolean checked_scroll = cb_scroll.isChecked();
         boolean checked_sound = cb_sound.isChecked();
         boolean checked_shade = cb_shade.isChecked();
+        boolean checked_trip = cb_trip.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0","0"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
         else settingsInput[0] = "0";
+
+        if (checked_trip) {
+            settingsInput[13] = "1"; //triplets
+        }
+        else settingsInput[13] = "0";
 
         if (checked_sync) {
             settingsInput[1] = "1"; //syncopation
@@ -405,7 +417,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);

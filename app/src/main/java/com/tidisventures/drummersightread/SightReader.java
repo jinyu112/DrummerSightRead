@@ -70,6 +70,7 @@ public class SightReader extends ActionBarActivity {
     private static boolean accentsFlag = false;
     private static boolean flamsFlag = false;
     private static boolean rollsFlag = false;
+    private static boolean tripletFlag = false;
     private static int numMeasures = 8;
     private static int difficulty = 0; //0 is easiest
 
@@ -86,6 +87,16 @@ public class SightReader extends ActionBarActivity {
                 metronomeOn = true;
             }
             else metronomeOn = false;
+
+            if (settingsOut[13].equals("1")) {
+                tripletFlag = true;
+                Log.d("Drumm17", "tripletFlag: true"); //syncopation
+            }
+            else {
+                tripletFlag = false;
+                Log.d("Drumm17", "tripletFlag: false"); //syncopation
+            }
+
             if (settingsOut[1].equals("1")) {
                 Log.d("Drumm16", "syncop on"); //syncopation
             }
@@ -801,7 +812,7 @@ public class SightReader extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0","0"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);
@@ -894,6 +905,11 @@ public class SightReader extends ActionBarActivity {
         else if (!accentsFlag && !flamsFlag && !rollsFlag) numSpecialNoteGroups = 4;
 
         int whichNoteGroup = 1 + (int) (Math.random() * numSpecialNoteGroups);
+
+        if (!tripletFlag) {
+            int[] tempArray = new int[]{2,3,5,7,8};
+            whichNoteGroup = getRandom(tempArray);
+        }
 
         int accentsForNoteGroups = 5;
         int accentNotes = 1 + (int) (Math.random() * accentsForNoteGroups);
@@ -1213,6 +1229,11 @@ public class SightReader extends ActionBarActivity {
         int numSpecialNoteGroups = 8;
 
         int whichNoteGroup = 1 + (int) (Math.random() * numSpecialNoteGroups);
+        if (!tripletFlag) {
+            int[] tempArray = new int[]{1,2,3,4,5,8};
+            whichNoteGroup = getRandom(tempArray);
+        }
+
         int runningPulseTime = startPulseTime;
         if (timeDen == 4) {
             if (whichNoteGroup == 1) { //flamacue
@@ -1361,6 +1382,12 @@ public class SightReader extends ActionBarActivity {
 
         }
         return specialNotes;
+    }
+
+
+    public static int getRandom(int[] array) {
+        int rnd = new Random().nextInt(array.length);
+        return array[rnd];
     }
 
 }

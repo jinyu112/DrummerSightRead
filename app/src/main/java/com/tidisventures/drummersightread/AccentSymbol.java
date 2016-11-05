@@ -131,7 +131,7 @@ public class AccentSymbol implements MusicSymbol {
     public void DrawRegularAccent(Canvas canvas, Paint paint, int ynote) {
 
         int ystart = ynote - SheetMusic.NoteHeight*3 - 8;
-        if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet) {
+        if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet || dur == NoteDuration.Eighth) {
             ystart = ystart - SheetMusic.NoteHeight;
         }
         else if (dur == NoteDuration.ThirtySecond) {
