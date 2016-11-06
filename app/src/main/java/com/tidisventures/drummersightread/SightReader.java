@@ -504,6 +504,10 @@ public class SightReader extends ActionBarActivity {
         int halfNoteProb =  20; //8 for selectedNote
         int dottedhalfNoteProb =  0; //9 for selectedNote
         int wholeNoteProb = 10; //10 for selectedNote
+        if (timeDen == 8) {
+            halfNoteProb = 0;
+            wholeNoteProb = 0;
+        }
 
         //accent probabilities
         int accentDraw = 50; // there is a one out of this number chance that an accent is produced in the note sequence
@@ -535,6 +539,13 @@ public class SightReader extends ActionBarActivity {
             dottedhalfNoteProb =  3; //9 for selectedNote
             wholeNoteProb = 10; //10 for selectedNote
 
+            if (timeDen == 8) {
+                dottedQuarterNoteProb = 15;
+                halfNoteProb = 1;
+                wholeNoteProb = 0;
+                quarterNoteProb = 25;
+            }
+
             accentProbs[0] = 1;
             accentProbs[1] = 5;
 
@@ -546,7 +557,7 @@ public class SightReader extends ActionBarActivity {
             flamDraw = 45;
 
             restDraw = 15;
-            restProbs[0] = 0;
+            restProbs[0] = 0; //sixteenth, triplet, eighth, quarter, half
             restProbs[1] = 0;
             restProbs[2] = 2;
             restProbs[3] = 1;
@@ -565,6 +576,12 @@ public class SightReader extends ActionBarActivity {
             dottedhalfNoteProb =  3; //9 for selectedNote
             wholeNoteProb = 5; //10 for selectedNote
 
+            if (timeDen == 8) {
+                dottedQuarterNoteProb = 5;
+                halfNoteProb = 2;
+                wholeNoteProb = 0;
+                quarterNoteProb = 25;
+            }
 
             accentDraw = 30;
             accentProbs[0] = 1;
@@ -596,7 +613,13 @@ public class SightReader extends ActionBarActivity {
             halfNoteProb =  10; //8 for selectedNote
             dottedhalfNoteProb =  3; //9 for selectedNote
             wholeNoteProb = 5; //10 for selectedNote
-
+            if (timeDen == 8) {
+                dottedQuarterNoteProb = 1;
+                halfNoteProb = 1;
+                wholeNoteProb = 0;
+                tripletNoteProb = 0;
+                quarterNoteProb = 5;
+            }
 
             accentDraw = 30;
             accentProbs[0] = 1;
@@ -628,6 +651,13 @@ public class SightReader extends ActionBarActivity {
             halfNoteProb =  5; //8 for selectedNote
             dottedhalfNoteProb =  1; //9 for selectedNote
             wholeNoteProb = 0; //10 for selectedNote
+            if (timeDen == 8) {
+                dottedQuarterNoteProb = 1;
+                halfNoteProb = 1;
+                wholeNoteProb = 0;
+                tripletNoteProb = 0;
+                quarterNoteProb = 0;
+            }
 
 
             accentDraw = 15;
@@ -642,6 +672,10 @@ public class SightReader extends ActionBarActivity {
             flamDraw = 25;
 
             restDraw = 8;
+            if (!syncoFlag && timeDen == 8) {
+                restDraw = 16;
+            }
+
             restProbs[0] = 1; //sixteenth, triplet, eighth, quarter, half
             restProbs[1] = 0; //should always be 0
             restProbs[2] = 2;
@@ -660,7 +694,13 @@ public class SightReader extends ActionBarActivity {
             halfNoteProb =  1; //8 for selectedNote
             dottedhalfNoteProb =  1; //9 for selectedNote
             wholeNoteProb = 0; //10 for selectedNote
-
+            if (timeDen == 8) {
+                dottedQuarterNoteProb = 1;
+                halfNoteProb = 1;
+                wholeNoteProb = 0;
+                tripletNoteProb = 0;
+                quarterNoteProb = 0;
+            }
 
             accentDraw = 10;
             accentProbs[0] = 1;
@@ -674,6 +714,10 @@ public class SightReader extends ActionBarActivity {
             flamDraw = 15;
 
             restDraw = 8;
+
+            if (!syncoFlag && timeDen == 8) {
+                restDraw = 16;
+            }
             restProbs[0] = 1; //sixteenth, triplet, eighth, quarter, half
             restProbs[1] = 0; //should always be 0
             restProbs[2] = 2;
@@ -692,7 +736,13 @@ public class SightReader extends ActionBarActivity {
             halfNoteProb =  0; //8 for selectedNote
             dottedhalfNoteProb =  1; //9 for selectedNote
             wholeNoteProb = 0; //10 for selectedNote
-
+            if (timeDen == 8) {
+                dottedQuarterNoteProb = 1;
+                halfNoteProb = 1;
+                wholeNoteProb = 0;
+                tripletNoteProb = 0;
+                quarterNoteProb = 0;
+            }
 
             accentDraw = 10;
             accentProbs[0] = 1;
@@ -706,6 +756,10 @@ public class SightReader extends ActionBarActivity {
             flamDraw = 10;
 
             restDraw = 8;
+
+            if (!syncoFlag && timeDen == 8) {
+                restDraw = 16;
+            }
             restProbs[0] = 1; //sixteenth, triplet, eighth, quarter, half
             restProbs[1] = 0; //should always be 0
             restProbs[2] = 2;
@@ -767,12 +821,15 @@ public class SightReader extends ActionBarActivity {
                 }
             }
 
+            if (timeDen == 8) downBeatCheck = false;// to prevent weird hang up problem
+            if (timeDen == 8) upbeatCheck = false; // to prevent weird hang up problem
+
             if (probRest == 1) { //either note or rest
                 rest = 0;
                 int[] tempRestProbs = new int[restProbs.length];
                 System.arraycopy( restProbs, 0, tempRestProbs, 0, restProbs.length );
                 if (downBeatCheck) { // don't allow eighth or sixteenth rests on the downbeat, decrease syncopated note sequence
-                    if (syncoFlag) {
+                    if (syncoFlag && timeDen != 8) {
                         tempRestProbs[2] = 2;
                         tempRestProbs[0] = 1;
                     }
@@ -782,16 +839,20 @@ public class SightReader extends ActionBarActivity {
                     }
                 }
                 else if (upbeatCheck) {
-                    if (syncoFlag) {
+                    if (syncoFlag  && timeDen != 8) {
                         tempRestProbs[2] = 50;
                     }
                     else tempRestProbs[2] = 200; // on a upbeat, make sure the rest is an eighth rest, decrease syncopated note sequence
                  }
                 else if (sixteenthUpBeatCheck) {
-                    if (syncoFlag) {
+                    if (syncoFlag  && timeDen != 8) {
                         tempRestProbs[0] = 75;
                     }
                     else tempRestProbs[0] = 200; // on a upbeat, make sure the rest is a 16th rest, decrease syncopated note sequence
+                }
+
+                if (difficulty < 4 && timeDen == 8) {
+                    tempRestProbs[0] = 0; //don't allow 16th rests for X/8 mode unless high enough difficulty
                 }
 
                 int i_rest = rouletteSelect(returnRestProbArray(remainingPulsesInMeasure,tempRestProbs,restArray));
@@ -838,6 +899,13 @@ public class SightReader extends ActionBarActivity {
                     }
                     else tempNoteProbs[2] = noteProbabilities[4] * 10;      //if on a sixteenth note upbeat, tend to select another sixteenth note
                                                                             // to decrease chances of syncopation
+                }
+
+                if (difficulty < 4 && timeDen == 8) {
+                    tempNoteProbs[0] = 0; //don't allow 16th notes for X/8 mode unless high enough difficulty
+                }
+                if (difficulty < 1 && timeDen == 8) {
+                    tempNoteProbs[2] = 0; //don't allow 8th notes for X/8 mode unless high enough difficulty
                 }
 
                 // selecting a note
