@@ -467,7 +467,9 @@ public class MidiPlayer extends LinearLayout {
                     metroTask.execute();
                 }
             }
-            player.start();
+            if (playSoundFlag) {
+                player.start();
+            }
 
         }
         catch (IOException e) {
@@ -546,9 +548,9 @@ public class MidiPlayer extends LinearLayout {
 
             CreateMidiFile();
             playstate = playing;
-            if (playSoundFlag) {
+            //if (playSoundFlag) {
                 PlaySound(tempSoundFile);
-            }
+            //}
             startTime = SystemClock.uptimeMillis();
 
             timer.removeCallbacks(TimerCallback);
