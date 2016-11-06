@@ -7,11 +7,20 @@ public class RollSymbol implements MusicSymbol {
     private WhiteNote whitenote;  /** The white note where the symbol occurs */
     private Clef clef;            /** Which clef the symbols is in */
     private int width;            /** Width of symbol */
+    private NoteDuration dur = NoteDuration.Quarter;
 
     /**
      * Create a new rollSymbol with the given accidental, that is
      * displayed at the given note in the given clef.
      */
+    public RollSymbol(Roll roll, WhiteNote note, Clef clef, NoteDuration dur_in) {
+        this.roll = roll;
+        this.whitenote = note;
+        this.clef = clef;
+        this.dur = dur_in;
+        width = getMinWidth();
+    }
+
     public RollSymbol(Roll roll, WhiteNote note, Clef clef) {
         this.roll = roll;
         this.whitenote = note;
@@ -99,7 +108,9 @@ public class RollSymbol implements MusicSymbol {
         int ystart = ynote  - SheetMusic.NoteHeight - SheetMusic.NoteHeight/5;
         int yend = ystart - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
         int x = SheetMusic.NoteHeight * 7 / 10 ;
+        if (dur == NoteDuration.Whole) x = SheetMusic.NoteHeight / 4 ;
         int xend = x + SheetMusic.NoteHeight*3/2;
+
         paint.setStrokeWidth(5);
         canvas.drawLine(x, ystart, xend, yend, paint);
 
@@ -110,6 +121,7 @@ public class RollSymbol implements MusicSymbol {
         int ystart = ynote  - SheetMusic.NoteHeight - SheetMusic.NoteHeight/4;
         int yend = ystart - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
         int x = SheetMusic.NoteHeight * 7 / 10 ;
+        if (dur == NoteDuration.Whole) x = SheetMusic.NoteHeight / 4 ;
         int xend = x + SheetMusic.NoteHeight*3/2;
         paint.setStrokeWidth(5);
         canvas.drawLine(x, ystart, xend, yend, paint);
@@ -125,6 +137,7 @@ public class RollSymbol implements MusicSymbol {
         int ystart = ynote  - SheetMusic.NoteHeight - SheetMusic.NoteHeight/5;
         int yend = ystart - SheetMusic.NoteHeight + SheetMusic.NoteHeight*2/3 - SheetMusic.NoteHeight/5;
         int x = SheetMusic.NoteHeight * 7 / 10 ;
+        if (dur == NoteDuration.Whole) x = SheetMusic.NoteHeight / 4 ;
         int xend = x + SheetMusic.NoteHeight*3/2;
         paint.setStrokeWidth(5);
         canvas.drawLine(x, ystart, xend, yend, paint);

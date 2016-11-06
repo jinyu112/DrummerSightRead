@@ -268,7 +268,7 @@ public class ChordSymbol implements MusicSymbol {
         int i = 0;
         for (NoteData n : notedata) {
             if (n.roll != Roll.None) {
-                rollsymbols[i] = new RollSymbol(n.roll, n.whitenote, clef);
+                rollsymbols[i] = new RollSymbol(n.roll, n.whitenote, clef, n.duration);
                 i++;
             }
         }
