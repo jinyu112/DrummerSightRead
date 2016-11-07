@@ -725,16 +725,16 @@ public class SightReader extends ActionBarActivity {
             restProbs[4] = 0;
         }
         else if (difficulty == 6) {
-            specialNoteSeqProb1 = 15; //0 for selectedNote
-            specialNoteSeqProb2 = 5; //1 for selectedNote
+            specialNoteSeqProb1 = 18; //0 for selectedNote
+            specialNoteSeqProb2 = 8; //1 for selectedNote
             sixteenthNoteProb = 50; //2 for selectedNote
-            tripletNoteProb = 0; //3 for selectedNote
-            eighthNoteProb = 20; //20 4 for selectedNote
+            tripletNoteProb = 1; //3 for selectedNote
+            eighthNoteProb = 30; //20 4 for selectedNote
             dottedEighthNoteProb = 1; //5 for selectedNote
             quarterNoteProb = 1; //6 for selectedNote
             dottedQuarterNoteProb = 5; //5 7 for selectedNote
             halfNoteProb =  0; //8 for selectedNote
-            dottedhalfNoteProb =  1; //9 for selectedNote
+            dottedhalfNoteProb =  0; //9 for selectedNote
             wholeNoteProb = 0; //10 for selectedNote
             if (timeDen == 8) {
                 dottedQuarterNoteProb = 1;
@@ -744,16 +744,16 @@ public class SightReader extends ActionBarActivity {
                 quarterNoteProb = 0;
             }
 
-            accentDraw = 10;
+            accentDraw = 8;
             accentProbs[0] = 1;
             accentProbs[1] = 5;
 
-            rollDraw = 15;
-            rollProbs[0] = 10;
+            rollDraw = 10;
+            rollProbs[0] = 15;
             rollProbs[1] = 1;
             rollProbs[2] = 0;
 
-            flamDraw = 10;
+            flamDraw = 8;
 
             restDraw = 8;
 
@@ -1155,6 +1155,13 @@ public class SightReader extends ActionBarActivity {
 
         if (!tripletFlag) {
             int[] tempArray = new int[]{2,3,5,7};
+            if (!accentsFlag && !flamsFlag && rollsFlag ){
+                tempArray[3] = 2;
+            }
+            else if (!accentsFlag && !flamsFlag && !rollsFlag) {
+                tempArray[3] = 2;
+                tempArray[2] = 3;
+            }
             whichNoteGroup = getRandom(tempArray);
         }
 
@@ -1420,7 +1427,7 @@ public class SightReader extends ActionBarActivity {
                         note.setStartTime(runningPulseTime);
                         note.setDuration(eighthNote);
                         if (i == 0) {
-                            note.setRollNum(2);
+                            if (rollsFlag) note.setRollNum(2);
                         } else if (i == 1 && accentsFlag) {
                             note.setAccentNum(2);
                         }
@@ -1434,7 +1441,7 @@ public class SightReader extends ActionBarActivity {
                     note.setNumber(60);
                     note.setStartTime(runningPulseTime + eighthNote);
                     note.setDuration(eighthNote);
-                    note.setRollNum(2);
+                    if (rollsFlag) note.setRollNum(2);
                     specialNotes.add(note);
                 }
             }
@@ -1446,8 +1453,8 @@ public class SightReader extends ActionBarActivity {
                     note.setStartTime(runningPulseTime);
                     note.setDuration(tripletNote);
                     if (i == 0) {
-                        note.setAccentNum(2);
-                        note.setFlamNum(1);
+                        if (accentsFlag) note.setAccentNum(2);
+                        if (flamsFlag) note.setFlamNum(1);
                     }
                     runningPulseTime += tripletNote;
                     specialNotes.add(note);
@@ -1461,8 +1468,8 @@ public class SightReader extends ActionBarActivity {
                     note.setStartTime(runningPulseTime);
                     note.setDuration(sixteenthNote);
                     if (i == 0 || i == 2) {
-                        note.setAccentNum(2);
-                        note.setFlamNum(1);
+                        if (accentsFlag) note.setAccentNum(2);
+                        if (flamsFlag) note.setFlamNum(1);
                     }
                     runningPulseTime += sixteenthNote;
                     specialNotes.add(note);

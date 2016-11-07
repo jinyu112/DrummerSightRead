@@ -108,7 +108,7 @@ public class AccentSymbol implements MusicSymbol {
 
         int ystart = ynote  - SheetMusic.NoteHeight * 7 / 2;
 
-        if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet) {
+        if (dur == NoteDuration.Sixteenth || dur == NoteDuration.SixteenthTriplet || dur == NoteDuration.Eighth) {
             ystart = ystart - SheetMusic.NoteHeight;
         }
         else if (dur == NoteDuration.ThirtySecond) {
