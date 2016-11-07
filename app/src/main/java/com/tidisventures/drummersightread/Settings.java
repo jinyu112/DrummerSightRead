@@ -5,6 +5,7 @@ import android.support.v7.app.ActionBarActivity;
 import android.text.InputFilter;
 import android.util.Log;
 import android.view.Gravity;
+import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -224,6 +225,68 @@ public class Settings extends ActionBarActivity {
     @Override
     public void onStop() {
         super.onStop();
+        saveSettings();
+    }
+
+    //use internal storage to save the training time data
+    public void saveTimeDataInternal(String[] in) {
+        FileOutputStream outputStream;
+
+        if (fileExistance(filename)) {
+            //String[] settingsOut = readSettingsDataInternal();
+
+            try {
+                outputStream = openFileOutput(filename, this.MODE_PRIVATE);
+                ObjectOutputStream oos = new ObjectOutputStream(outputStream);
+                oos.writeObject(in);
+                oos.close();
+                outputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+        else {
+            try {
+                outputStream = openFileOutput(filename, this.MODE_PRIVATE);
+                ObjectOutputStream oos = new ObjectOutputStream(outputStream);
+                oos.writeObject(in);
+                oos.close();
+                outputStream.close();
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+    }
+
+    //this function returns data from the internal storage with information about the settings
+    //this is also defined where the settings flags are needed
+    public String[] readSettingsDataInternal() {
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0","0","0"};
+        try {
+            FileInputStream fin = openFileInput(filename);
+            ObjectInputStream ois = new ObjectInputStream(fin);
+            settingsOut = (String[]) ois.readObject();
+            ois.close();
+            fin.close();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+        }
+        return settingsOut;
+    }
+
+    public boolean fileExistance(String fname){
+        File file = getBaseContext().getFileStreamPath(fname);
+        return file.exists();
+    }
+
+    public void save_settings(View view){
+        saveSettings();
+        finish();
+    }
+
+
+    private void saveSettings() {
         boolean checked_met = cb_met.isChecked();
         boolean checked_sync = cb_sync.isChecked();
         boolean checked_accnt = cb_accnt.isChecked();
@@ -382,58 +445,6 @@ public class Settings extends ActionBarActivity {
         settingsInput[7] = evtempo_str;
 
         saveTimeDataInternal(settingsInput);
-    }
-
-    //use internal storage to save the training time data
-    public void saveTimeDataInternal(String[] in) {
-        FileOutputStream outputStream;
-
-        if (fileExistance(filename)) {
-            //String[] settingsOut = readSettingsDataInternal();
-
-            try {
-                outputStream = openFileOutput(filename, this.MODE_PRIVATE);
-                ObjectOutputStream oos = new ObjectOutputStream(outputStream);
-                oos.writeObject(in);
-                oos.close();
-                outputStream.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-        else {
-            try {
-                outputStream = openFileOutput(filename, this.MODE_PRIVATE);
-                ObjectOutputStream oos = new ObjectOutputStream(outputStream);
-                oos.writeObject(in);
-                oos.close();
-                outputStream.close();
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-    }
-
-    //this function returns data from the internal storage with information about the settings
-    //this is also defined where the settings flags are needed
-    public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0","0","0"};
-        try {
-            FileInputStream fin = openFileInput(filename);
-            ObjectInputStream ois = new ObjectInputStream(fin);
-            settingsOut = (String[]) ois.readObject();
-            ois.close();
-            fin.close();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-        }
-        return settingsOut;
-    }
-
-    public boolean fileExistance(String fname){
-        File file = getBaseContext().getFileStreamPath(fname);
-        return file.exists();
     }
 }
 

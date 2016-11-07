@@ -1,7 +1,8 @@
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools" android:orientation="vertical" android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="10dp"
+    android:paddingTop="20dp"
     android:gravity="center_horizontal">
 
     <LinearLayout
@@ -11,6 +12,8 @@
         android:gravity="center_horizontal">
         <TextView android:text="@string/settings" android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:textStyle="bold"
+            android:textSize="25sp"
             android:id="@+id/settings_tv"/>
 
         <LinearLayout
@@ -329,5 +332,21 @@
                 android:id="@+id/settings_evtempo"/>
         </LinearLayout>
 
+        <LinearLayout
+            android:focusable="true"
+            android:focusableInTouchMode="true"
+            android:layout_width="0px"
+            android:layout_height="50dp"/>
+
+
+        <ImageButton
+            android:id="@+id/save_settings"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:src="@mipmap/ok_100"
+            android:background="@android:color/transparent"
+            android:onClick="save_settings"/>
+
     </LinearLayout>
-</LinearLayout>
+</ScrollView>
