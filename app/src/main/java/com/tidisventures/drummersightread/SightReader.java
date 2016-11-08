@@ -725,11 +725,11 @@ public class SightReader extends ActionBarActivity {
             restProbs[4] = 0;
         }
         else if (difficulty == 6) {
-            specialNoteSeqProb1 = 18; //0 for selectedNote
+            specialNoteSeqProb1 = 20; //0 for selectedNote
             specialNoteSeqProb2 = 8; //1 for selectedNote
             sixteenthNoteProb = 50; //2 for selectedNote
-            tripletNoteProb = 1; //3 for selectedNote
-            eighthNoteProb = 30; //20 4 for selectedNote
+            tripletNoteProb = 3; //3 for selectedNote
+            eighthNoteProb = 36; //20 4 for selectedNote
             dottedEighthNoteProb = 1; //5 for selectedNote
             quarterNoteProb = 1; //6 for selectedNote
             dottedQuarterNoteProb = 5; //5 7 for selectedNote
@@ -748,12 +748,12 @@ public class SightReader extends ActionBarActivity {
             accentProbs[0] = 1;
             accentProbs[1] = 5;
 
-            rollDraw = 10;
+            rollDraw = 5;
             rollProbs[0] = 15;
             rollProbs[1] = 1;
             rollProbs[2] = 0;
 
-            flamDraw = 8;
+            flamDraw = 5;
 
             restDraw = 8;
 
@@ -889,7 +889,7 @@ public class SightReader extends ActionBarActivity {
                     if (syncoFlag) {
                         tempNoteProbs[2] = noteProbabilities[2];
                     }
-                    else tempNoteProbs[2] = noteProbabilities[2] * 10; //if on a sixteenth note upbeat, tend to select another sixteenth note
+                    else tempNoteProbs[2] = noteProbabilities[2] * 5; //if on a sixteenth note upbeat, tend to select another sixteenth note
                                                                             // to decrease chances of syncopation
                     tempNoteProbs[6] = 0; //don't select a quarter note on a sixteenthupbeat
                 }
@@ -897,7 +897,7 @@ public class SightReader extends ActionBarActivity {
                     if (syncoFlag) {
                         tempNoteProbs[4] = noteProbabilities[4] * 2;
                     }
-                    else tempNoteProbs[2] = noteProbabilities[4] * 10;      //if on a sixteenth note upbeat, tend to select another sixteenth note
+                    else tempNoteProbs[2] = noteProbabilities[4] * 5;      //if on a sixteenth note upbeat, tend to select another sixteenth note
                                                                             // to decrease chances of syncopation
                 }
 

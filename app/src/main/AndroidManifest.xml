@@ -26,6 +26,11 @@
             android:name=".Settings"
             android:label="@string/settings" android:screenOrientation="portrait" >
         </activity>
+        <activity
+            android:name=".About"
+            android:label="@string/settings" android:screenOrientation="portrait" >
+        </activity>
+
 
     </application>
 

@@ -6,6 +6,13 @@
     <string name="sightreaderact">Sight Reader</string>
     <string name="title">Drummer Sight Reading Practice</string>
     <string name="settings">Settings</string>
+    <string name="about">About</string>
+    <string name="about_desc">The "Drummer Sight Reading App" is designed to help novice to advanced drummers practice sight reading
+    using 7 difficulty levels of randomly generated sheet music. You, as the drummer, are allowed to select from 6 different time
+    signatures, tempo varying from 30 to 200 beats per minute, flams, accents, rolls, triplets, 16th triplets, and more to practice
+    from. The app also allows you to practice different rudiments like flam taps, para diddles, 5 stroke rolls, and more as these are randomly
+    sprinkled into the music. Each piece of sheet music will be different providing a truly new practice session each time. The app
+    also has a metronome built in so you don\'t have to use your own. To contact the developer of this app, please send all inquiries to tidisventures@gmail.com or visit http://tidisventures.com</string>
 
     <string-array name="zoomSizes">
         <item>Small</item>
