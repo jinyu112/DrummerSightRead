@@ -61,6 +61,7 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         Button button = (Button) findViewById(R.id.butt);
+        AppRater.app_launched(this);
 
 
     }
