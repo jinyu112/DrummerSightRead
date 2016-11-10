@@ -12,7 +12,6 @@ import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Handler;
 import android.os.SystemClock;
-import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
 import android.view.WindowManager;
@@ -20,7 +19,6 @@ import android.widget.Button;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
-import android.widget.SeekBar;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -70,8 +68,9 @@ public class MidiPlayer extends LinearLayout {
     private ImageButton fastFwdButton;/** The fast forward button */
 
     private TextView tempoTV;
-    private Button plusButton;
-    private Button minusButton;
+    private TextView tempoTVLabel;
+    private ImageButton plusButton;
+    private ImageButton minusButton;
 
     int playstate;               /** The playing state of the Midi Player */
     final int stopped   = 1;     /** Currently stopped */
@@ -93,6 +92,7 @@ public class MidiPlayer extends LinearLayout {
     double currentPulseTime;    /** Time (in pulses) music is currently at */
     double prevPulseTime;       /** Time (in pulses) music was last at */
     Context context;            /** The context, for writing midi files */
+    private int scrWidth;
 
     //metronome
     private short bpm = 60;
@@ -117,11 +117,11 @@ public class MidiPlayer extends LinearLayout {
             return;
         }
         Resources res = context.getResources();
-        rewindImage = BitmapFactory.decodeResource(res, R.drawable.rewind);
-        playImage = BitmapFactory.decodeResource(res, R.drawable.play);
+        rewindImage = BitmapFactory.decodeResource(res, R.drawable.ic_fast_rewind_black_24dp);
+        playImage = BitmapFactory.decodeResource(res, R.drawable.ic_play_arrow_black_24dp);
         pauseImage = BitmapFactory.decodeResource(res, R.drawable.pause);
-        stopImage = BitmapFactory.decodeResource(res, R.drawable.stop);
-        fastFwdImage = BitmapFactory.decodeResource(res, R.drawable.fastforward);
+        stopImage = BitmapFactory.decodeResource(res, R.drawable.ic_stop_black_24dp);
+        fastFwdImage = BitmapFactory.decodeResource(res, R.drawable.ic_fast_forward_black_24dp);
     }
 
 
@@ -145,11 +145,15 @@ public class MidiPlayer extends LinearLayout {
 
         Activity activity = (Activity)context;
         int screenwidth = activity.getWindowManager().getDefaultDisplay().getWidth();
+        scrWidth = screenwidth;
         int screenheight = activity.getWindowManager().getDefaultDisplay().getHeight();
         Point newsize = MidiPlayer.getPreferredSize(screenwidth, screenheight);
         resizeButtons(newsize.x, newsize.y);
         player = new MediaPlayer();
-        setBackgroundColor(Color.BLACK);
+//
+
+
+        setBackgroundColor(getResources().getColor(R.color.colorAccent));
 
         metroTask = new MetronomeAsyncTask();
         beat = Beats.four;
@@ -199,7 +203,6 @@ public class MidiPlayer extends LinearLayout {
 
         /* Create the rewind button */
         rewindButton = new ImageButton(context);
-        rewindButton.setBackgroundColor(Color.BLACK);
         rewindButton.setImageBitmap(rewindImage);
         rewindButton.setScaleType(ImageView.ScaleType.FIT_XY);
         rewindButton.setOnClickListener(new View.OnClickListener() {
@@ -211,7 +214,6 @@ public class MidiPlayer extends LinearLayout {
 
         /* Create the stop button */
         stopButton = new ImageButton(context);
-        stopButton.setBackgroundColor(Color.BLACK);
         stopButton.setImageBitmap(stopImage);
         stopButton.setScaleType(ImageView.ScaleType.FIT_XY);
         stopButton.setOnClickListener(new View.OnClickListener() {
@@ -224,7 +226,6 @@ public class MidiPlayer extends LinearLayout {
 
         /* Create the play button */
         playButton = new ImageButton(context);
-        playButton.setBackgroundColor(Color.BLACK);
         playButton.setImageBitmap(playImage);
         playButton.setScaleType(ImageView.ScaleType.FIT_XY);
         playButton.setOnClickListener(new View.OnClickListener() {
@@ -236,7 +237,6 @@ public class MidiPlayer extends LinearLayout {
 
         /* Create the fastFwd button */
         fastFwdButton = new ImageButton(context);
-        fastFwdButton.setBackgroundColor(Color.BLACK);
         fastFwdButton.setImageBitmap(fastFwdImage);
         fastFwdButton.setScaleType(ImageView.ScaleType.FIT_XY);
         fastFwdButton.setOnClickListener(new View.OnClickListener() {
@@ -247,23 +247,33 @@ public class MidiPlayer extends LinearLayout {
         this.addView(fastFwdButton);
 
 
-        /* Create the Speed bar */
+        //Tempo control
+        tempoTVLabel = new TextView(context);
+        tempoTVLabel.setText("TEMPO (BPM):");
+        tempoTVLabel.setTextColor(Color.WHITE);
+        tempoTVLabel.setGravity(Gravity.CENTER);
+        tempoTVLabel.setSingleLine(true);
+        this.addView(tempoTVLabel);
+
         tempoTV = new TextView(context);
         tempoTV.setText(Integer.toString(bpm));
         tempoTV.setTextColor(Color.WHITE);
         tempoTV.setGravity(Gravity.CENTER);
+        tempoTV.setSingleLine(true);
         this.addView(tempoTV);
 
-        plusButton = new Button(context);
-        plusButton.setText("+");
-        plusButton.setGravity(Gravity.CENTER);
+
+        plusButton = new ImageButton(context);
+        plusButton.setImageResource(R.drawable.ic_add_black_24dp);
+
+        plusButton.setScaleType(ImageView.ScaleType.FIT_XY);
         PlusOnClickListener ptsScoredPlusListener = new PlusOnClickListener(tempoTV);
         plusButton.setOnClickListener(ptsScoredPlusListener);
         this.addView(plusButton);
 
-        minusButton = new Button(context);
-        minusButton.setText("-");
-        minusButton.setGravity(Gravity.CENTER);
+        minusButton = new ImageButton(context);
+        minusButton.setImageResource(R.drawable.ic_remove_black_24dp);
+        minusButton.setScaleType(ImageView.ScaleType.FIT_XY);
         MinusOnClickListener ptsScoredMinusListener = new MinusOnClickListener(tempoTV);
         minusButton.setOnClickListener(ptsScoredMinusListener);
         this.addView(minusButton);
@@ -283,6 +293,8 @@ public class MidiPlayer extends LinearLayout {
         stopButton.setPadding(pad, pad, pad, pad);
         playButton.setPadding(pad, pad, pad, pad);
         fastFwdButton.setPadding(pad, pad, pad, pad);
+        plusButton.setPadding(pad,pad,pad,pad);
+        minusButton.setPadding(pad,pad,pad,pad);
 
         LinearLayout.LayoutParams params;
 
@@ -305,6 +317,24 @@ public class MidiPlayer extends LinearLayout {
         playButton.setLayoutParams(params);
         stopButton.setLayoutParams(params);
         fastFwdButton.setLayoutParams(params);
+
+        params = new LinearLayout.LayoutParams(buttonheight*2, buttonheight);
+        params.bottomMargin = 0;
+        params.topMargin = 0;
+        params.rightMargin = 0;
+        params.leftMargin =  scrWidth - buttonheight * 19 / 2;
+        tempoTVLabel.setLayoutParams(params);
+
+        params = new LinearLayout.LayoutParams(buttonheight, buttonheight);
+        params.bottomMargin = 0;
+        params.topMargin = 0;
+        params.rightMargin = 0;
+        params.leftMargin =  0;
+        tempoTV.setLayoutParams(params);
+        plusButton.setLayoutParams(params);
+        minusButton.setLayoutParams(params);
+
+
 
     }
 

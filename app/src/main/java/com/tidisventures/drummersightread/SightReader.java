@@ -65,13 +65,13 @@ public class SightReader extends ActionBarActivity {
     private static int timeNum = 4;
     private static int timeDen = 4;
     private static int timeSig = 0; //0 is 4/4, 1 is 2/4, 2 is 3/4, and so on
-    private static boolean playSoundFlag = false;
-    private static boolean shadeNotes = false;
+    private static boolean playSoundFlag = true;
+    private static boolean shadeNotes = true;
     private static boolean accentsFlag = false;
     private static boolean flamsFlag = false;
     private static boolean rollsFlag = false;
     private static boolean tripletFlag = false;
-    private static int numMeasures = 8;
+    private static int numMeasures = 4;
     private static int difficulty = 0; //0 is easiest
     private static boolean syncoFlag = false;
 
@@ -82,6 +82,7 @@ public class SightReader extends ActionBarActivity {
 
 
         //read in the settings from persistent memory
+        zoomSetting = 1;
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
             if (settingsOut[0].equals("1")) {
@@ -760,9 +761,9 @@ public class SightReader extends ActionBarActivity {
             if (!syncoFlag && timeDen == 8) {
                 restDraw = 16;
             }
-            restProbs[0] = 1; //sixteenth, triplet, eighth, quarter, half
+            restProbs[0] = 2; //sixteenth, triplet, eighth, quarter, half
             restProbs[1] = 0; //should always be 0
-            restProbs[2] = 2;
+            restProbs[2] = 3;
             restProbs[3] = 0;
             restProbs[4] = 0;
         }
@@ -840,13 +841,15 @@ public class SightReader extends ActionBarActivity {
                 }
                 else if (upbeatCheck) {
                     if (syncoFlag  && timeDen != 8) {
-                        tempRestProbs[2] = 50;
+                        //tempRestProbs[2] = 50;
+                        tempRestProbs[2] = 8 + (int) (Math.random() * 42);
                     }
                     else tempRestProbs[2] = 200; // on a upbeat, make sure the rest is an eighth rest, decrease syncopated note sequence
                  }
                 else if (sixteenthUpBeatCheck) {
                     if (syncoFlag  && timeDen != 8) {
-                        tempRestProbs[0] = 75;
+                        //tempRestProbs[0] = 75;
+                        tempRestProbs[0] = 15 + (int) (Math.random() * 60);
                     }
                     else tempRestProbs[0] = 200; // on a upbeat, make sure the rest is a 16th rest, decrease syncopated note sequence
                 }
@@ -887,7 +890,7 @@ public class SightReader extends ActionBarActivity {
                 System.arraycopy( noteProbabilities, 0, tempNoteProbs, 0, noteProbabilities.length );
                 if (sixteenthUpBeatCheck) {
                     if (syncoFlag) {
-                        tempNoteProbs[2] = noteProbabilities[2];
+                        tempNoteProbs[2] = noteProbabilities[2] / 2;
                     }
                     else tempNoteProbs[2] = noteProbabilities[2] * 5; //if on a sixteenth note upbeat, tend to select another sixteenth note
                                                                             // to decrease chances of syncopation
@@ -895,7 +898,7 @@ public class SightReader extends ActionBarActivity {
                 }
                 else if (upbeatCheck) { //by definition, upbeatcheck and sixteenthupbeatcheck cannot be both true at same time
                     if (syncoFlag) {
-                        tempNoteProbs[4] = noteProbabilities[4] * 2;
+                        tempNoteProbs[4] = noteProbabilities[4] / 2 ;
                     }
                     else tempNoteProbs[2] = noteProbabilities[4] * 5;      //if on a sixteenth note upbeat, tend to select another sixteenth note
                                                                             // to decrease chances of syncopation
@@ -1047,7 +1050,7 @@ public class SightReader extends ActionBarActivity {
         note.setChannel(1);
         note.setNumber(60);
         note.setStartTime(runningPulseTime);
-        note.setDuration(eighthNote);
+        note.setDuration(quarterNote);
         tempnotes.add(note);
 
         notes = tempnotes;
@@ -1288,6 +1291,7 @@ public class SightReader extends ActionBarActivity {
                 }
             }
             else if (whichNoteGroup == 3) { //4 32nd notes
+                int num = (int) (Math.random() * 3);
                 for (int i = 0; i < 4; i++) {
                     MidiNote note = new MidiNote(0, 0, 0, 0);
                     note.setChannel(0);
@@ -1297,7 +1301,7 @@ public class SightReader extends ActionBarActivity {
                     accentNotes = 1 + (int) (Math.random() * 3);
                     if (accentsFlag) {
                         if (accentNotes == 1) {
-                            if (i == 0) {
+                            if (i == num) {
                                 note.setAccentNum(2);
                             }
                         }
@@ -1311,7 +1315,7 @@ public class SightReader extends ActionBarActivity {
                     flamNotes = 1 + (int) (Math.random() * 3);
                     if (flamsFlag) {
                         if (flamNotes == 1) {
-                            if (i == 0) {
+                            if (i == num) {
                                 note.setFlamNum(1);
                             }
                         }
@@ -1341,17 +1345,17 @@ public class SightReader extends ActionBarActivity {
                     runningPulseTime += sixteenthTripletNote;
 
                     if (accentsFlag) {
+                        int num = (int) (Math.random() * 5);
                         if (accentNotes == 1) {
-                            int num = (int) (Math.random() * 5);
                             if (i == num) {
                                 note.setAccentNum(2);
                             }
                         } else if (accentNotes == 2) {
-                            if (i == 0 || i == 3) {
+                            if (i == num || i == 3) {
                                 note.setAccentNum(2);
                             }
                         } else if (accentNotes == 3) {
-                            if (i == 0 || i == 2 || i == 3) {
+                            if (i == 0 || i == num || i == 3) {
                                 note.setAccentNum(2);
                             }
                         }
@@ -1617,7 +1621,7 @@ public class SightReader extends ActionBarActivity {
                         note.setAccentNum(2);
                         note.setFlamNum(1);
                     }
-                    else if (i == 1 || i == 4 || i ==0 || i == 3) {
+                    else if (i == 1 || i == 4 || i == 0 || i == 3) {
                         note.setRollNum(1);
                     }
                     runningPulseTime += tripletNote;

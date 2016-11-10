@@ -43,13 +43,16 @@ public class Settings extends ActionBarActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
         cb_met = (CheckBox) findViewById(R.id.settings_cbmeton);
+        cb_met.setChecked(true);
         cb_sync = (CheckBox) findViewById(R.id.settings_cbsync);
         cb_accnt = (CheckBox) findViewById(R.id.settings_cbaccents);
         cb_roll = (CheckBox) findViewById(R.id.settings_cbrolls);
         cb_flam = (CheckBox) findViewById(R.id.settings_cbflam);
         cb_scroll = (CheckBox) findViewById(R.id.settings_cbscroll);
         cb_sound = (CheckBox) findViewById(R.id.settings_cbsound);
+        cb_sound.setChecked(true);
         cb_shade = (CheckBox) findViewById(R.id.settings_cbshade);
+        cb_shade.setChecked(true);
         cb_trip = (CheckBox) findViewById(R.id.settings_cbtrip);
         evtempo = (EditText) findViewById(R.id.settings_evtempo);
         evtempo.setGravity(Gravity.CENTER);
@@ -103,7 +106,7 @@ public class Settings extends ActionBarActivity {
         spinnerMeas.setAdapter(adapterMeas);
 
         //default to 8 measures
-        spinnerMeas.setSelection(1);
+        spinnerMeas.setSelection(0);
 
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
