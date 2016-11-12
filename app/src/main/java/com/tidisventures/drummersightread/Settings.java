@@ -6,6 +6,7 @@ import android.text.InputFilter;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
@@ -36,6 +37,7 @@ public class Settings extends ActionBarActivity {
     private static  Spinner spinnerTS;
     private static  Spinner spinnerDiff;
     private static  Spinner spinnerMeas;
+    private static  Spinner spinnerPM; //practice mode spinner
     private static EditText evtempo;
 
     @Override
@@ -46,8 +48,11 @@ public class Settings extends ActionBarActivity {
         cb_met.setChecked(true);
         cb_sync = (CheckBox) findViewById(R.id.settings_cbsync);
         cb_accnt = (CheckBox) findViewById(R.id.settings_cbaccents);
+        cb_accnt.setChecked(true);
         cb_roll = (CheckBox) findViewById(R.id.settings_cbrolls);
+        cb_roll.setChecked(true);
         cb_flam = (CheckBox) findViewById(R.id.settings_cbflam);
+        cb_flam.setChecked(true);
         cb_scroll = (CheckBox) findViewById(R.id.settings_cbscroll);
         cb_sound = (CheckBox) findViewById(R.id.settings_cbsound);
         cb_sound.setChecked(true);
@@ -107,6 +112,43 @@ public class Settings extends ActionBarActivity {
 
         //default to 8 measures
         spinnerMeas.setSelection(0);
+
+
+
+        spinnerPM = (Spinner) findViewById(R.id.settings_pmspinner);
+
+// Create an ArrayAdapter using the string array and a default spinner layout
+        ArrayAdapter<CharSequence> adapterPM = ArrayAdapter.createFromResource(this,
+                R.array.pm, android.R.layout.simple_spinner_item);
+// Specify the layout to use when the list of choices appears
+        adapterPM.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+// Apply the adapter to the spinner
+        spinnerPM.setAdapter(adapterPM);
+
+        //default to normal practice mode
+        spinnerPM.setSelection(0);
+
+
+        spinnerPM.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parentView, View selectedItemView, int position, long id) {
+                if (position != 0) {
+                    spinnerTS.setSelection(0);
+                    cb_sync.setChecked(false);
+                    cb_trip.setChecked(false);
+                }
+                if (position == 2) {
+                    cb_trip.setChecked(true);
+                }
+            }
+
+            @Override
+            public void onNothingSelected(AdapterView<?> parentView){
+                return;
+            }
+
+        });
+
 
         if (fileExistance(filename)) {
             String[] settingsOut = readSettingsDataInternal();
@@ -216,6 +258,23 @@ public class Settings extends ActionBarActivity {
             else spinnerTS.setSelection(0);
 
 
+
+
+            if (settingsOut[14].equals("Normal Mode")) {
+                spinnerPM.setSelection(0);
+            }
+            else if (settingsOut[14].equals("8th Note Mode (4/4)")) {
+                spinnerPM.setSelection(1);
+            }
+            else if (settingsOut[14].equals("Triplet Mode (4/4)")) {
+                spinnerPM.setSelection(2);
+            }
+            else if (settingsOut[14].equals("16th Note Mode (4/4)")) {
+                spinnerPM.setSelection(3);
+            }
+            else spinnerPM.setSelection(0);
+
+
             evtempo.setText(settingsOut[7]);
         }
         else {
@@ -264,7 +323,7 @@ public class Settings extends ActionBarActivity {
     //this function returns data from the internal storage with information about the settings
     //this is also defined where the settings flags are needed
     public String[] readSettingsDataInternal() {
-        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0","0","0"};
+        String settingsOut[] = new String[]{"0", "0", "0", "0", "0","0","0","60","4/4","0","0","0","0","0","Normal Mode"};
         try {
             FileInputStream fin = openFileInput(filename);
             ObjectInputStream ois = new ObjectInputStream(fin);
@@ -300,7 +359,7 @@ public class Settings extends ActionBarActivity {
         boolean checked_shade = cb_shade.isChecked();
         boolean checked_trip = cb_trip.isChecked();
 
-        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0","0"};
+        String[] settingsInput = new String[] {"0", "0", "0", "0", "0", "0","0","60","4/4","0","0","0","0","0","Normal Mode"};
         if (checked_met) {
             settingsInput[0] = "1"; //metronome
         }
@@ -421,6 +480,32 @@ public class Settings extends ActionBarActivity {
         else {
             settingsInput[12] = "8";
         }
+
+        if (spinnerPM.getSelectedItemPosition()==0) {
+            settingsInput[14] = "Normal Mode";
+        }
+        else if (spinnerPM.getSelectedItemPosition()==1) {
+            settingsInput[14] = "8th Note Mode (4/4)";
+            settingsInput[8] = "4/4";
+            spinnerTS.setSelection(0);
+            cb_sync.setChecked(false);
+            cb_trip.setChecked(false);
+        }
+        else if (spinnerPM.getSelectedItemPosition()==2) {
+            settingsInput[14] = "Triplet Mode (4/4)";
+            settingsInput[8] = "4/4";
+            spinnerTS.setSelection(0);
+            cb_sync.setChecked(false);
+            cb_trip.setChecked(true);
+        }
+        else if (spinnerPM.getSelectedItemPosition()==3) {
+            settingsInput[14] = "16th Note Mode (4/4)";
+            settingsInput[8] = "4/4";
+            spinnerTS.setSelection(0);
+            cb_sync.setChecked(false);
+            cb_trip.setChecked(false);
+        }
+        else settingsInput[14] = "Normal Mode";
 
 
         String evtempo_str = "0";
