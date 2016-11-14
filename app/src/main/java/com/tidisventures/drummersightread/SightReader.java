@@ -1,12 +1,21 @@
 package com.tidisventures.drummersightread;
 
 
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.media.MediaScannerConnection;
 import android.os.Bundle;
+import android.os.Environment;
 import android.support.v7.app.ActionBarActivity;
 import android.util.Log;
+import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 import com.leff.midi.event.NoteOff;
@@ -17,6 +26,9 @@ import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.ObjectInputStream;
+import java.io.OutputStream;
+import java.io.UnsupportedEncodingException;
+import java.net.URLEncoder;
 import java.util.ArrayList;
 import java.util.Random;
 
@@ -375,7 +387,7 @@ public class SightReader extends ActionBarActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        getMenuInflater().inflate(R.menu.menu_sightreader, menu);
         return true;
     }
 //
@@ -386,13 +398,83 @@ public class SightReader extends ActionBarActivity {
         // as you specify a parent activity in AndroidManifest.xml.
         int id = item.getItemId();
 
-        //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
+        if (id == R.id.action_saveimage) {
+            showSaveImagesDialog();
             return true;
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+
+    /* Show the "Save As Images" dialog */
+    private void showSaveImagesDialog() {
+        LayoutInflater inflator = LayoutInflater.from(this);
+        final View dialogView= inflator.inflate(R.layout.save_images_dialog, null);
+        final EditText filenameView = (EditText)dialogView.findViewById(R.id.save_images_filename);
+        filenameView.setText(midifile.getFileName().replace("_", " ") );
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle(R.string.saveimage);
+        builder.setView(dialogView);
+        builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface builder, int whichButton) {
+                saveAsImages(filenameView.getText().toString());
+            }
+        });
+        builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+            public void onClick(DialogInterface builder, int whichButton) {
+            }
+        });
+        AlertDialog dialog = builder.create();
+        dialog.show();
+    }
+
+
+    /* Save the current sheet music as PNG images. */
+    private void saveAsImages(String name) {
+        String filename = name;
+        try {
+            filename = URLEncoder.encode(name, "utf-8");
+        }
+        catch (UnsupportedEncodingException e) {
+        }
+        if (!options.scrollVert) {
+            options.scrollVert = true;
+            createSheetMusic(options);
+        }
+        try {
+            int numpages = sheet.GetTotalPages();
+            for (int page = 1; page <= numpages; page++) {
+                Bitmap image= Bitmap.createBitmap(SheetMusic.PageWidth + 40, SheetMusic.PageHeight + 40, Bitmap.Config.ARGB_8888);
+                Canvas imageCanvas = new Canvas(image);
+                sheet.DrawPage(imageCanvas, page);
+                File path = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES + "/SheetMusic");
+                File file = new File(path, "" + filename + page + ".png");
+                path.mkdirs();
+                OutputStream stream = new FileOutputStream(file);
+                image.compress(Bitmap.CompressFormat.PNG, 0, stream);
+                image = null;
+                stream.close();
+
+                // Inform the media scanner about the file
+                MediaScannerConnection.scanFile(this, new String[]{file.toString()}, null, null);
+            }
+        }
+        catch (IOException e) {
+            AlertDialog.Builder builder = new AlertDialog.Builder(this);
+            builder.setMessage("Error saving image to file " + Environment.DIRECTORY_PICTURES + "/SheetMusic/" + filename  + ".png");
+            builder.setCancelable(false);
+            builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                public void onClick(DialogInterface dialog, int id) {
+                }
+            });
+            AlertDialog alert = builder.create();
+            alert.show();
+        }
+    }
+
+
+
 
     public MidiFile genMidiFile(ArrayList<MidiNote> tempnotes) {
         com.leff.midi.MidiTrack tempoTrack = new com.leff.midi.MidiTrack();
@@ -455,7 +537,7 @@ public class SightReader extends ActionBarActivity {
 
         //convert exampleout.mid to regular midi class obj
         byte[] data = returnData("exampleout.mid");
-        String title = "asdf";
+        String title = "Filename";
         MidiFile tempmidifile = new MidiFile(data,title);
 
         return tempmidifile;

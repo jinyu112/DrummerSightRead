@@ -6,6 +6,8 @@
     <string name="sightreaderact">Sight Reader</string>
     <string name="title">Drummer Sight Reading Practice</string>
     <string name="settings">Settings</string>
+    <string name="saveimage">Save As Image</string>
+    <string name="save_images_descr_str">The generated sheet music will be saved in the /Picture/SheetMusic directory.</string>
     <string name="about">About</string>
     <string name="about_desc">The "Drummer Sight Reading App" is designed to help novice to advanced drummers practice sight reading
     using 7 difficulty levels of randomly generated sheet music. You, as the drummer, are allowed to select from 6 different time
