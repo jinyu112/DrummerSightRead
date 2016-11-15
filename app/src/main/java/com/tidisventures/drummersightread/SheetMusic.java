@@ -109,6 +109,19 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     //shade notes flag
     private boolean shadeNotes = false;
 
+    //note durations in pulses
+    private static final int quarterNote = 96;
+    private static final int halfNote = quarterNote * 2;
+    private static final int wholeNote = quarterNote * 4;
+    private static final int dottedQuarterNote = quarterNote * 3 / 2;
+    private static final int dottedHalfNote = quarterNote * 3;
+    private static final int eighthNote = quarterNote / 2;
+    private static final int dottedEighthNote = eighthNote * 3 / 2;
+    private static final int tripletNote = quarterNote / 3 ;
+    private static final int sixteenthNote= quarterNote / 4;
+    private static final int sixteenthTripletNote = quarterNote / 6;
+    private static final int thirtysecondNote= quarterNote / 8;
+
     public SheetMusic(Context context) {
         super(context);
         SurfaceHolder holder = getHolder();
@@ -395,7 +408,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
         else if (time.getDenominator() == 8) {
-                startDrawMeasureBarTime = 4 * time.getQuarter() * 3 / 2;
+            startDrawMeasureBarTime = 4 * time.getQuarter() * 3 / 2;
         }
         else {
             startDrawMeasureBarTime = 4 * time.getQuarter();
@@ -458,7 +471,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         return result;
     }
 
-     /** Return the rest symbols needed to fill the time interval between
+    /** Return the rest symbols needed to fill the time interval between
      * start and end.  If no rests are needed, return nil.
      */
     private
@@ -480,7 +493,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
             }
         }
         else if (time.getDenominator() == 8) {
-                musicStartPulse = 4 * time.getQuarter() * 3 / 2;
+            musicStartPulse = 4 * time.getQuarter() * 3 / 2;
         }
         else {
             musicStartPulse = 4 * time.getQuarter();
@@ -811,6 +824,8 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
             int endindex = startindex;
             int width = keysigWidth;
             int maxwidth;
+            int endNote = 0;
+            int beginNote = 0;
 
             /* If we're scrolling vertically, the maximum width is PageWidth. */
             if (scrollVert) {
@@ -826,6 +841,30 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                 width += symbols.get(endindex).getWidth();
                 endindex++;
             }
+
+            boolean dontDrawEndLineFlag = false;
+            int prevendindex = endindex;
+            if (scrollVert) { //prevent the horizontal beams from being cut off at the end of a staff in vertical scrolling
+                              // issue 20 fix
+                if (endindex > 0 && endindex < symbols.size() - 1) {
+                    beginNote = symbols.get(endindex + 1).getStartTime() - symbols.get(endindex).getStartTime();
+                    endNote = symbols.get(endindex).getStartTime() - symbols.get(endindex - 1).getStartTime();
+                    while ( ((beginNote <= eighthNote && endNote <= eighthNote && beginNote == endNote) || (beginNote == sixteenthNote && endNote == eighthNote) || (beginNote == sixteenthNote && endNote == dottedEighthNote)  || (beginNote == eighthNote && endNote == sixteenthNote))
+                            && endindex > startindex)  {
+                        endindex--;
+                        beginNote = symbols.get(endindex + 1).getStartTime() - symbols.get(endindex).getStartTime();
+                        endNote = symbols.get(endindex).getStartTime() - symbols.get(endindex - 1).getStartTime();
+
+                        dontDrawEndLineFlag = true;
+                    }
+                }
+            }
+
+            if (endindex-startindex <= 2) { //if issue 20 fix removed too many notes, just set the endindex to what it was before
+                                            // this is just a safety precaution
+                endindex = prevendindex ;
+            }
+
             endindex--;
 
             /* There's 3 possibilities at this point:
@@ -866,7 +905,10 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
                 staffSymbols.add(symbols.get(i));
             }
             Staff staff = new Staff(staffSymbols, key, options, track, totaltracks);
-            thestaffs.add(staff);
+            if (dontDrawEndLineFlag) {//doesn't go in here unless scrollvert is true
+                staff = new Staff(staffSymbols, key, options, track, totaltracks,dontDrawEndLineFlag);
+            }
+            if (startindex != endindex) thestaffs.add(staff);
             startindex = endindex + 1;
         }
         return thestaffs;
@@ -1593,7 +1635,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
 
 
-//this functions were defined by jin
+    //this functions were defined by jin
     private ArrayList<MidiTrack> genTrack() {
         ArrayList<MidiTrack> generated_tracks = new ArrayList<MidiTrack>(1);
         //ArrayList<MidiNote> notes = genNotes();
@@ -1604,25 +1646,25 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
         return generated_tracks;
     }
 
-public ArrayList<MidiNote> getNotes() {return returnedNotes;}
+    public ArrayList<MidiNote> getNotes() {return returnedNotes;}
 
-public ArrayList<MidiTrack> getTracks() {return returnedTracks;}
+    public ArrayList<MidiTrack> getTracks() {return returnedTracks;}
 
-public TimeSignature getTime() {return returnedTime;}
+    public TimeSignature getTime() {return returnedTime;}
 
 
-public void setNotes(ArrayList<MidiNote> notes_in) {this.notes=notes_in;}
+    public void setNotes(ArrayList<MidiNote> notes_in) {this.notes=notes_in;}
 
-public void setLastStartJin(int lastStart_in) {this.lastStartJin=lastStart_in;}
+    public void setLastStartJin(int lastStart_in) {this.lastStartJin=lastStart_in;}
 
-public void setZoom(float in) {
-    this.zoomFact = in;
-}
+    public void setZoom(float in) {
+        this.zoomFact = in;
+    }
 
-public void stopMusic() {
-    //if (player==null) return;
-    player.setStopSound();
-}
+    public void stopMusic() {
+        //if (player==null) return;
+        player.setStopSound();
+    }
 
     private int convertBPMtoMicrosec(int tempo_in) {
         int microseconds = 1000000;

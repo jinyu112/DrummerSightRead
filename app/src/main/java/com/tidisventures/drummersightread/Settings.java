@@ -245,9 +245,15 @@ public class Settings extends ActionBarActivity {
             }
             else if (settingsOut[8].equals("6/4")) {
                 spinnerTS.setSelection(3);
+                if (cb_scroll.isChecked()) {
+                    cb_scroll.setChecked(false);
+                }
             }
             else if (settingsOut[8].equals("12/8")) {
                 spinnerTS.setSelection(4);
+                if (cb_scroll.isChecked()) {
+                    cb_scroll.setChecked(false);
+                }
             }
             else if (settingsOut[8].equals("6/8")) {
                 spinnerTS.setSelection(5);
@@ -401,7 +407,7 @@ public class Settings extends ActionBarActivity {
         else settingsInput[9] = "0";
 
         if (checked_shade) {
-            settingsInput[10] = "1"; //sound
+            settingsInput[10] = "1"; //shade
         }
         else settingsInput[10] = "0";
 
@@ -426,9 +432,21 @@ public class Settings extends ActionBarActivity {
         }
         else if (spinnerTS.getSelectedItemPosition()==3) {
             settingsInput[8] = "6/4";
+            if (settingsInput[5].equals("1")) {
+                settingsInput[5] = "0";
+                Toast.makeText(this, "Vertical scrolling in 6/4 is not supported.",
+                        Toast.LENGTH_SHORT).show();
+                cb_scroll.setChecked(false);
+            }
         }
         else if (spinnerTS.getSelectedItemPosition()==4) {
             settingsInput[8] = "12/8";
+            if (settingsInput[5].equals("1")) {
+                settingsInput[5] = "0";
+                Toast.makeText(this, "Vertical scrolling in 12/8 is not supported.",
+                        Toast.LENGTH_SHORT).show();
+                cb_scroll.setChecked(false);
+            }
         }
         else if (spinnerTS.getSelectedItemPosition()==5) {
             settingsInput[8] = "6/8";

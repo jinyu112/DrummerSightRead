@@ -39,6 +39,8 @@ public class Staff {
     private int starttime;              /** The time (in pulses) of first symbol */
     private int endtime;                /** The time (in pulses) of last symbol */
     private int measureLength;          /** The time (in pulses) of a measure */
+    private boolean dontDrawEndLineFlag;
+    private boolean scrollVertFlag;
 
     /** Create a new staff with the given list of music symbols,
      * and the given key signature.  The clef is determined by
@@ -66,6 +68,34 @@ public class Staff {
         keys = key.GetSymbols(clef);
         this.symbols = symbols;
         CalculateWidth(options.scrollVert);
+        this.scrollVertFlag = options.scrollVert;
+        CalculateHeight();
+        CalculateStartEndTime();
+        FullJustify();
+        dontDrawEndLineFlag = false;
+    }
+
+    public Staff(ArrayList<MusicSymbol> symbols, KeySignature key,
+                 MidiOptions options, int tracknum, int totaltracks, boolean dontDrawEndLineFlag_in)  {
+
+        keysigWidth = SheetMusic.KeySignatureWidth(key);
+        this.tracknum = tracknum;
+        this.totaltracks = totaltracks;
+        this.dontDrawEndLineFlag = dontDrawEndLineFlag_in;
+        showMeasures = (options.showMeasures && tracknum == 0);
+        if (options.time != null) {
+            measureLength = options.time.getMeasure();
+        }
+        else {
+            measureLength = options.defaultTime.getMeasure();
+        }
+        Clef clef = FindClef(symbols);
+
+        clefsym = new ClefSymbol(clef, 0, false);
+        keys = key.GetSymbols(clef);
+        this.symbols = symbols;
+        CalculateWidth(options.scrollVert);
+        this.scrollVertFlag = options.scrollVert;
         CalculateHeight();
         CalculateStartEndTime();
         FullJustify();
@@ -185,7 +215,7 @@ public class Staff {
                 i++;
             }
         }
-
+        if (totalsymbols == 0) totalsymbols = 1; //prevent division by zero, related to the issue 20 fix
         int extrawidth = (SheetMusic.PageWidth - totalwidth - 1) / totalsymbols;
         if (extrawidth > SheetMusic.NoteHeight*2) {
             extrawidth = SheetMusic.NoteHeight*2;
@@ -305,10 +335,17 @@ public class Staff {
             yend = ytop + 4 * SheetMusic.NoteHeight;
         else
             yend = height;
+        if (scrollVertFlag) {
+            if (!dontDrawEndLineFlag) {
+                canvas.drawLine(SheetMusic.LeftMargin, ystart, SheetMusic.LeftMargin, yend, paint);
+            }
+            canvas.drawLine(width - 1, ystart, width - 1, yend, paint);
+        }
+        else {
+            canvas.drawLine(SheetMusic.LeftMargin, ystart, SheetMusic.LeftMargin, yend, paint);
+            canvas.drawLine(width - 1, ystart, width - 1, yend, paint);
+        }
 
-        canvas.drawLine(SheetMusic.LeftMargin, ystart, SheetMusic.LeftMargin, yend, paint);
-
-        canvas.drawLine(width-1, ystart, width-1, yend, paint);
 
     }
 

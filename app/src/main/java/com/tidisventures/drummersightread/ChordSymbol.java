@@ -1250,7 +1250,7 @@ public class ChordSymbol implements MusicSymbol {
                 return false;
             }
             boolean correctTime =
-                    (time.getNumerator() == 2 || time.getNumerator() == 4 || time.getNumerator() == 8);
+                    (time.getNumerator() == 2 || time.getNumerator() == 4 || ((time.getNumerator() == 6 || time.getNumerator() == 3) && time.getDenominator() == 4) || time.getNumerator() == 8);
             if (!correctTime && dur != NoteDuration.Sixteenth) {
                 return false;
             }

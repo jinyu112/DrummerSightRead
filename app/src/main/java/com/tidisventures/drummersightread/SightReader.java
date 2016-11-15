@@ -238,11 +238,13 @@ public class SightReader extends ActionBarActivity {
                 timeNum = 6;
                 timeDen = 4;
                 timeSig = 4;
+                scrollVert = false;
             }
             else if (settingsOut[8].equals("12/8")) {
                 timeNum = 12;
                 timeDen = 8;
                 timeSig = 5;
+                scrollVert = false;
             }
             else if (settingsOut[8].equals("6/8")) {
                 timeNum = 6;
@@ -277,6 +279,7 @@ public class SightReader extends ActionBarActivity {
             options.setScrollVert(false);
         }
 
+//        options.showMeasures = true;
         options.shade1Color = settings.getInt("shade1Color", options.shade1Color);
         options.shade2Color = settings.getInt("shade2Color", options.shade2Color);
         createView();
@@ -440,6 +443,9 @@ public class SightReader extends ActionBarActivity {
         }
         if (!options.scrollVert) {
             options.scrollVert = true;
+            if ((timeNum == 6 && timeDen == 4) || (timeNum == 12)) options.scrollVert=false; //this is too prevent the
+                                                                                             // difficulty of plotting vertical
+                                                                                             // sheet music in 12/8 and 6/4
             createSheetMusic(options);
         }
         try {
@@ -1234,7 +1240,7 @@ public class SightReader extends ActionBarActivity {
                     if (probRoll == 1 && probAccent != 1) {
                         int i_roll = rouletteSelect(rollProbs);
                         if (i_roll != -1) {
-                            if (i_roll == 0) {
+                            if (i_roll == 0 && note.getDuration() != quarterNote && note.getDuration() != dottedQuarterNote) {
                                 note.setRollNum(1);
                             } else if (i_roll == 1 && (note.getDuration() != sixteenthNote && note.getDuration() != tripletNote)) {
                                 note.setRollNum(2);
