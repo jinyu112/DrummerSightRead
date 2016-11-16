@@ -9,12 +9,29 @@
     <string name="saveimage">Save As Image</string>
     <string name="save_images_descr_str">The generated sheet music will be saved in the /Picture/SheetMusic directory.</string>
     <string name="about">About</string>
-    <string name="about_desc">The "Drummer Sight Reading App" is designed to help novice to advanced drummers practice sight reading
-    using 7 difficulty levels of randomly generated sheet music. You, as the drummer, are allowed to select from 6 different time
+    <string name="about_desc">The \"Drummer Sight Reading App\" is designed to help novice to advanced drummers practice sight reading
+    using 7 difficulty levels of randomly generated sheet music. This app is perfect for the student OR the teacher. \n\n
+
+        You, as the drummer, are allowed to select from 6 different time
     signatures, tempo varying from 30 to 200 beats per minute, flams, accents, rolls, triplets, 16th triplets, and more to practice
-    from. The app also allows you to practice different rudiments like flam taps, para diddles, 5 stroke rolls, and more as these are randomly
-    sprinkled into the music. Each piece of sheet music will be different providing a truly new practice session each time. The app
-    also has a metronome built in so you don\'t have to use your own. To contact the developer of this app, please send all inquiries to tidisventures@gmail.com or visit http://tidisventures.com</string>
+    from.\n\n
+
+        The app also allows you to practice different rudiments like flam taps, para diddles, 5 stroke rolls, and more as these are randomly
+    sprinkled into the music.\n\n
+
+        Each piece of sheet music will be different providing a truly new practice session each time. The app
+    also has a metronome built in so you don\'t have to use your own.\n\n
+
+        To contact the developer of this app, please send all inquiries to tidisventures@gmail.com or visit the following link:</string>
+
+    <string name="about_desc1">There are 4 different practice modes to choose from. The \"Normal Mode\" generates percussion sheet music at random and the difficulty level depends on the difficulty level you\'ve selected. 0 is the easiest mode and 6 is the hardest.\n\n
+
+        The \"8th Note Mode\" only generates eighth notes for how ever many measures was selected. Selecting the \"Include Flams?\", \"Include Rolls?\" and \"Include Accents\" allows the app to generate randomly occurring accents, flams, and rolls throughout the eighth note sheet music. This mode and the following 2 modes are only available in the 4/4 time signature.\n\n
+
+        The \"Triplet Mode\" only generates triplet notes for how ever many measures was selected and is the same as the \"8th Note Mode\" but with only triplets. Similarly, the \"16th Note Mode\" only generates 16th notes.
+    </string>
+
+    <string name="about_desc2">You can choose to save the generated sheet music as PNG files. To do this, press your menu button while in the practice page and an option should come up to ask you to save the current music. The files will show up in your Picture Albums. From there, you can share them with your friends, bandmates, students, or teachers.</string>
 
     <string-array name="zoomSizes">
         <item>Small</item>

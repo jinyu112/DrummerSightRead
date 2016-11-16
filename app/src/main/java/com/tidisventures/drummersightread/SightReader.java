@@ -292,6 +292,8 @@ public class SightReader extends ActionBarActivity {
             player.setBeats(beat);
         }
 
+        if (practiceMode == 3) sheet.setSixteenthNoteMode(true);
+
     }
 
     /* Create the MidiPlayer and Piano views */

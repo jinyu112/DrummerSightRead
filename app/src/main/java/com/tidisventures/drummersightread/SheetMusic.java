@@ -111,16 +111,11 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
 
     //note durations in pulses
     private static final int quarterNote = 96;
-    private static final int halfNote = quarterNote * 2;
-    private static final int wholeNote = quarterNote * 4;
-    private static final int dottedQuarterNote = quarterNote * 3 / 2;
-    private static final int dottedHalfNote = quarterNote * 3;
     private static final int eighthNote = quarterNote / 2;
     private static final int dottedEighthNote = eighthNote * 3 / 2;
-    private static final int tripletNote = quarterNote / 3 ;
     private static final int sixteenthNote= quarterNote / 4;
-    private static final int sixteenthTripletNote = quarterNote / 6;
-    private static final int thirtysecondNote= quarterNote / 8;
+
+    private static boolean sixteenthNoteModeFlag = false;
 
     public SheetMusic(Context context) {
         super(context);
@@ -830,6 +825,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
             /* If we're scrolling vertically, the maximum width is PageWidth. */
             if (scrollVert) {
                 maxwidth = SheetMusic.PageWidth;
+                if (sixteenthNoteModeFlag) maxwidth = maxwidth * 105 / 100;
             }
             else {
                 maxwidth = 2000000;
@@ -1689,5 +1685,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     public void setShadeNotes(boolean in) {
         this.shadeNotes = in;
     }
+
+    public void setSixteenthNoteMode(boolean in) { this.sixteenthNoteModeFlag = in;}
 }
 
