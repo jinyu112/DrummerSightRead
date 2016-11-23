@@ -8,7 +8,7 @@
         android:layout_width="match_parent"
         android:layout_height="fill_parent"
         android:orientation="vertical"
-        android:weightSum="3">
+        android:weightSum="5">
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="0dp"
@@ -17,19 +17,37 @@
             android:layout_width="match_parent"
             android:layout_height="0dp"
             android:orientation="vertical"
-            android:layout_weight="1"
+            android:layout_weight="3"
             android:layout_gravity="center_vertical|center_horizontal"
             android:gravity="center_horizontal|center_vertical">
-            <TextView android:text="@string/title" android:layout_width="wrap_content"
+            <TextView android:text="@string/title1" android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:id="@+id/tv"/>
+                android:id="@+id/tv"
+                android:textStyle="bold"
+                android:textSize="20sp"
+                android:textColor="@color/colorPrimaryDark"/>
+            <TextView android:text="@string/title2" android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textSize="20sp"
+                android:textStyle="bold"
+                android:paddingBottom="20dp"
+                android:textColor="@color/colorPrimaryDark"/>
+            <ImageView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_gravity="center"
+                android:id="@+id/imgview"/>
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="20dp"></LinearLayout>
+
             <Button
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="PRACTICE"
                 android:id="@+id/butt"
                 android:onClick="goToSightReader"
-                android:clickable="true"/>
+                android:clickable="true" />
 
             <Button
                 android:layout_width="wrap_content"

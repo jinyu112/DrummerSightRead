@@ -10,6 +10,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
@@ -62,6 +63,9 @@ public class MainActivity extends ActionBarActivity {
 
         Button button = (Button) findViewById(R.id.butt);
         AppRater.app_launched(this);
+
+        ImageView imgView = (ImageView) findViewById(R.id.imgview);
+        imgView.setImageResource(R.drawable.icon);
 
 
     }

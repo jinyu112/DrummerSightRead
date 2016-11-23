@@ -1,5 +1,7 @@
 <resources>
-    <string name="app_name">Drummer Sight Read</string>
+    <string name="app_name">Drummer Sight Reading</string>
+    <string name="title1">Drummer Sight</string>
+    <string name="title2">Reading Practice</string>
 
     <string name="hello_world">Hello world!</string>
     <string name="action_settings">Settings</string>
