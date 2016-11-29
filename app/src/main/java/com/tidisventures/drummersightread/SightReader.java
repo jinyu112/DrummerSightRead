@@ -778,16 +778,16 @@ public class SightReader extends ActionBarActivity {
             }
 
 
-            accentDraw = 15;
+            accentDraw = 10;
             accentProbs[0] = 1;
             accentProbs[1] = 5;
 
-            rollDraw = 25;
+            rollDraw = 10;
             rollProbs[0] = 1;
             rollProbs[1] = 0;
             rollProbs[2] = 0;
 
-            flamDraw = 25;
+            flamDraw = 10;
 
             restDraw = 8;
             if (!syncoFlag && timeDen == 8) {
@@ -820,16 +820,16 @@ public class SightReader extends ActionBarActivity {
                 quarterNoteProb = 0;
             }
 
-            accentDraw = 10;
+            accentDraw = 8;
             accentProbs[0] = 1;
             accentProbs[1] = 5;
 
-            rollDraw = 20;
+            rollDraw = 8;
             rollProbs[0] = 10;
             rollProbs[1] = 1;
             rollProbs[2] = 0;
 
-            flamDraw = 15;
+            flamDraw = 8;
 
             restDraw = 8;
 
@@ -862,16 +862,16 @@ public class SightReader extends ActionBarActivity {
                 quarterNoteProb = 0;
             }
 
-            accentDraw = 8;
+            accentDraw = 7;
             accentProbs[0] = 1;
             accentProbs[1] = 5;
 
-            rollDraw = 5;
+            rollDraw = 3;
             rollProbs[0] = 15;
             rollProbs[1] = 1;
             rollProbs[2] = 0;
 
-            flamDraw = 5;
+            flamDraw = 3;
 
             restDraw = 8;
 

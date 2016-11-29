@@ -155,33 +155,45 @@ public class Settings extends ActionBarActivity {
             if (settingsOut[0].equals("1")) {
                 cb_met.setChecked(true);
             }
+            else cb_met.setChecked(false);
+
             if (settingsOut[1].equals("1")) {
                 cb_sync.setChecked(true);
             }
+            else cb_sync.setChecked(false);
+
             if (settingsOut[2].equals("1")) {
                 cb_accnt.setChecked(true);
             }
+            else cb_accnt.setChecked(false);
             if (settingsOut[3].equals("1")) {
                 cb_roll.setChecked(true);
             }
+            else cb_roll.setChecked(false);
             if (settingsOut[4].equals("1")) {
                 cb_flam.setChecked(true);
             }
+            else cb_flam.setChecked(false);
+
             if (settingsOut[5].equals("1")) {
                 cb_scroll.setChecked(true);
             }
+            else cb_scroll.setChecked(false);
 
             if (settingsOut[9].equals("1")) {
                 cb_sound.setChecked(true);
             }
+            else cb_sound.setChecked(false);
 
             if (settingsOut[10].equals("1")) {
                 cb_shade.setChecked(true);
             }
+            else cb_shade.setChecked(false);
 
             if (settingsOut[13].equals("1")) {
                 cb_trip.setChecked(true);
             }
+            else cb_trip.setChecked(false);
 
             if (settingsOut[6].equals("0")) {
                 spinner.setSelection(0);
