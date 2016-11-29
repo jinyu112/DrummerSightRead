@@ -739,16 +739,16 @@ public class SightReader extends ActionBarActivity {
                 quarterNoteProb = 5;
             }
 
-            accentDraw = 30;
+            accentDraw = 10;
             accentProbs[0] = 1;
             accentProbs[1] = 5;
 
-            rollDraw = 40;
+            rollDraw = 3;
             rollProbs[0] = 1;
             rollProbs[1] = 0;
             rollProbs[2] = 0;
 
-            flamDraw = 40;
+            flamDraw = 8;
 
             restDraw = 15;
             restProbs[0] = 0; //sixteenth, triplet, eighth, quarter, half
@@ -1071,11 +1071,12 @@ public class SightReader extends ActionBarActivity {
                     }
                     else {
                         tempRestProbs[2] = 1;
-                        tempRestProbs[0] = 1;
-                        if (difficulty == 0) {
-                            tempRestProbs[0] = 0;
-                            tempRestProbs[2] = 0;
-                        }
+                        tempRestProbs[0] = 0;
+                    }
+
+                    if (difficulty <= 3) {
+                        tempRestProbs[0] = 0;
+                        tempRestProbs[2] = 0;
                     }
                 }
                 else if (upbeatCheck) {
@@ -1242,13 +1243,13 @@ public class SightReader extends ActionBarActivity {
                     if (probRoll == 1 && probAccent != 1) {
                         int i_roll = rouletteSelect(rollProbs);
                         if (i_roll != -1) {
-                            if (i_roll == 0 && note.getDuration() != quarterNote && note.getDuration() != dottedQuarterNote) {
+                            if (i_roll == 0 && note.getDuration() < quarterNote) {
                                 note.setRollNum(1);
                             } else if (i_roll == 1 && (note.getDuration() != sixteenthNote && note.getDuration() != tripletNote)) {
                                 note.setRollNum(2);
                             } else {
                                 if (note.getDuration() >= halfNote) note.setRollNum(3);
-                                else note.setRollNum(1);
+                                else if (note.getDuration() <= eighthNote) note.setRollNum(1);
                             }
                         }
                     }

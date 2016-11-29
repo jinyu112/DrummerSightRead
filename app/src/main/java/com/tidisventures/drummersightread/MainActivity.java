@@ -43,19 +43,6 @@ public class MainActivity extends ActionBarActivity {
     private int lastStartJin;
 
 
-    //added by jin 8/26/16 from midifile
-    /* The list of Midi Events */
-    public static final byte EventNoteOff         = (byte)0x80;
-    public static final byte EventNoteOn          = (byte)0x90;
-    public static final byte EventKeyPressure     = (byte)0xA0;
-    public static final byte EventControlChange   = (byte)0xB0;
-    public static final byte EventProgramChange   = (byte)0xC0;
-    public static final byte EventChannelPressure = (byte)0xD0;
-    public static final byte EventPitchBend       = (byte)0xE0;
-    public static final byte SysexEvent1          = (byte)0xF0;
-    public static final byte SysexEvent2          = (byte)0xF7;
-
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
