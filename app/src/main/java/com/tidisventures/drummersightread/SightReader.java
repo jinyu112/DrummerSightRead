@@ -643,6 +643,7 @@ public class SightReader extends ActionBarActivity {
         int restDraw = 18; //10 the smaller this is, the more likely a rest will occur
         int[] restProbs = new int[] {0,0,0,1,0}; //sixteenth, triplet, eighth, quarter, half
 
+        if (timeNum == 3 && timeDen == 8 && difficulty == 0) difficulty = 1;
 
         if (difficulty == 1) {
             specialNoteSeqProb1 = 0; //0 for selectedNote
@@ -894,9 +895,12 @@ public class SightReader extends ActionBarActivity {
             specialNoteSeqProb1 = 0;
             specialNoteSeqProb2 = 0;
             tripletNoteProb = 0;
+            tripletFlag = false;
         }
 
         if (!tripletFlag) tripletNoteProb = 0;
+
+        if (syncoFlag && difficulty < 1) syncoFlag = false;
 
         // set practice mode probabilities
         if (practiceMode != 0) { //no rests for 8th note -> 16th note practice modes
