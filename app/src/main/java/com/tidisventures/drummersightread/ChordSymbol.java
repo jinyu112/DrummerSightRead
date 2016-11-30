@@ -861,8 +861,10 @@ public class ChordSymbol implements MusicSymbol {
             return false;
         }
         int measure = chords[0].getStartTime() / time.getMeasure();
+
         NoteDuration dur = firstStem.getDuration();
         NoteDuration durLast = lastStem.getDuration();
+
 
         boolean dotted8_to_16 = false;
         if (chords.length == 2 && dur == NoteDuration.DottedEighth &&
@@ -878,6 +880,7 @@ public class ChordSymbol implements MusicSymbol {
                 int beat = time.getQuarter();
                 if ((chords[0].getStartTime() % beat) == 0) {
                     Stem middleStem = chords[1].getStem();
+                    if (middleStem == null) return false;
                     NoteDuration durMiddle = middleStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Sixteenth
                             && durLast == NoteDuration.Eighth) {
@@ -894,6 +897,7 @@ public class ChordSymbol implements MusicSymbol {
                 int beat = time.getQuarter();
                 if ((chords[0].getStartTime() % beat) == 0) {
                     Stem middleStem = chords[1].getStem();
+                    if (middleStem == null) return false;
                     NoteDuration durMiddle = middleStem.getDuration();
                     if (dur == NoteDuration.Eighth && durMiddle == NoteDuration.Sixteenth
                             && durLast == NoteDuration.Sixteenth) {
@@ -911,6 +915,7 @@ public class ChordSymbol implements MusicSymbol {
                 int beat = time.getQuarter();
                 if ((chords[0].getStartTime() % beat) == 0) {
                     Stem middleStem = chords[1].getStem();
+                    if (middleStem == null) return false;
                     NoteDuration durMiddle = middleStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && durMiddle == NoteDuration.Eighth
                             && durLast == NoteDuration.Sixteenth) {
@@ -927,6 +932,7 @@ public class ChordSymbol implements MusicSymbol {
                 int beat = time.getQuarter();
                 if ((chords[0].getStartTime() % beat) == 0) {
                     Stem middleStem = chords[1].getStem();
+                    if (middleStem == null) return false;
                     NoteDuration durMiddle = middleStem.getDuration();
                     if (dur == NoteDuration.Triplet && durMiddle == NoteDuration.Triplet
                             && durLast == NoteDuration.Triplet) {
@@ -943,6 +949,7 @@ public class ChordSymbol implements MusicSymbol {
                 int beat = time.getQuarter();
                 if ((chords[0].getStartTime() % beat) == 0) {
                     Stem middleStem = chords[1].getStem();
+                    if (middleStem == null) return false;
                     NoteDuration durMiddle = middleStem.getDuration();
                     if (dur == NoteDuration.SixteenthTriplet && durMiddle == NoteDuration.SixteenthTriplet
                             && durLast == NoteDuration.SixteenthTriplet) {
@@ -997,6 +1004,7 @@ public class ChordSymbol implements MusicSymbol {
                         Stem Stem3 = chords[2].getStem();
                         Stem Stem4 = chords[3].getStem();
                         Stem Stem5 = chords[4].getStem();
+                        if (Stem2 == null || Stem3 == null || Stem4 == null || Stem5 == null) return false;
                         if (firstStem.getDuration() == NoteDuration.Eighth &&
                                 Stem2.getDuration() == NoteDuration.Eighth &&
                                 Stem3.getDuration() == NoteDuration.Eighth &&
@@ -1023,8 +1031,10 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
                     Stem tempStem = chords[1].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur2nd = tempStem.getDuration();
                     tempStem = chords[2].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur3rd = tempStem.getDuration();
                     if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Sixteenth
                             && dur3rd == NoteDuration.Sixteenth && durLast == NoteDuration.Eighth) {
@@ -1037,8 +1047,10 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
                     Stem tempStem = chords[1].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur2nd = tempStem.getDuration();
                     tempStem = chords[2].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur3rd = tempStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
                             && dur3rd == NoteDuration.Eighth && durLast == NoteDuration.Eighth) {
@@ -1051,8 +1063,10 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
                     Stem secondStem = chords[1].getStem();
+                    if (secondStem == null) return false;
                     NoteDuration dur2nd = secondStem.getDuration();
                     Stem thirdStem = chords[2].getStem();
+                    if (thirdStem == null) return false;
                     NoteDuration dur3nd = thirdStem.getDuration();
                     if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Eighth
                             && dur3nd == NoteDuration.Sixteenth && durLast == NoteDuration.Sixteenth) {
@@ -1066,8 +1080,10 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
                     Stem secondStem = chords[1].getStem();
+                    if (secondStem == null) return false;
                     NoteDuration dur2nd = secondStem.getDuration();
                     Stem thirdStem = chords[2].getStem();
+                    if (thirdStem == null) return false;
                     NoteDuration dur3nd = thirdStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Eighth
                             && dur3nd == NoteDuration.Sixteenth && durLast == NoteDuration.Eighth) {
@@ -1081,8 +1097,10 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
                     Stem secondStem = chords[1].getStem();
+                    if (secondStem == null) return false;
                     NoteDuration dur2nd = secondStem.getDuration();
                     Stem thirdStem = chords[2].getStem();
+                    if (thirdStem == null) return false;
                     NoteDuration dur3nd = thirdStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Eighth
                             && dur3nd == NoteDuration.Eighth && durLast == NoteDuration.Sixteenth) {
@@ -1096,8 +1114,10 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fourNoteGroup_12_8_tailCombo) {
                     Stem secondStem = chords[1].getStem();
+                    if (secondStem == null) return false;
                     NoteDuration dur2nd = secondStem.getDuration();
                     Stem thirdStem = chords[2].getStem();
+                    if (thirdStem == null) return false;
                     NoteDuration dur3nd = thirdStem.getDuration();
                     if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Sixteenth
                             && dur3nd == NoteDuration.Eighth && durLast == NoteDuration.Sixteenth) {
@@ -1119,10 +1139,13 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
                     Stem tempStem = chords[1].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur2nd = tempStem.getDuration();
                     tempStem = chords[2].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur3rd = tempStem.getDuration();
                     tempStem = chords[3].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur4th = tempStem.getDuration();
 
                     if (dur == NoteDuration.Eighth && dur2nd == NoteDuration.Sixteenth
@@ -1139,10 +1162,13 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
                     Stem tempStem = chords[1].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur2nd = tempStem.getDuration();
                     tempStem = chords[2].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur3rd = tempStem.getDuration();
                     tempStem = chords[3].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur4th = tempStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
                             && dur3rd == NoteDuration.Sixteenth && dur4th == NoteDuration.Sixteenth
@@ -1158,10 +1184,13 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
                     Stem tempStem = chords[1].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur2nd = tempStem.getDuration();
                     tempStem = chords[2].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur3rd = tempStem.getDuration();
                     tempStem = chords[3].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur4th = tempStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
                             && dur3rd == NoteDuration.Eighth && dur4th == NoteDuration.Sixteenth
@@ -1177,10 +1206,13 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
                     Stem tempStem = chords[1].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur2nd = tempStem.getDuration();
                     tempStem = chords[2].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur3rd = tempStem.getDuration();
                     tempStem = chords[3].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur4th = tempStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Sixteenth
                             && dur3rd == NoteDuration.Sixteenth && dur4th == NoteDuration.Eighth
@@ -1196,10 +1228,13 @@ public class ChordSymbol implements MusicSymbol {
                 if (chords[0].getStartTime()== startTime || noteGroupStartOn4thBeat ||
                         chords[0].getStartTime() == startTime + beat * 3 / 2 || fiveNoteGroup_12_8_tailCombo) {
                     Stem tempStem = chords[1].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur2nd = tempStem.getDuration();
                     tempStem = chords[2].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur3rd = tempStem.getDuration();
                     tempStem = chords[3].getStem();
+                    if (tempStem == null) return false;
                     NoteDuration dur4th = tempStem.getDuration();
                     if (dur == NoteDuration.Sixteenth && dur2nd == NoteDuration.Eighth
                             && dur3rd == NoteDuration.Sixteenth && dur4th == NoteDuration.Sixteenth

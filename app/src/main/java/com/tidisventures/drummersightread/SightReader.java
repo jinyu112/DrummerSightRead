@@ -1155,6 +1155,10 @@ public class SightReader extends ActionBarActivity {
                     tempNoteProbs[2] = 0; //don't allow 8th notes for X/8 mode unless high enough difficulty
                 }
 
+                if (difficulty <= 3) {
+                    tempNoteProbs[0] = 0;
+                    tempNoteProbs[2] = 0;
+                }
                 // selecting a note
                 int selectedNote = rouletteSelect(returnNoteProbArray(remainingPulsesInMeasure, tempNoteProbs, noteArray, downBeatCheck));
 
