@@ -423,7 +423,9 @@ public class SightReader extends ActionBarActivity {
         builder.setView(dialogView);
         builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
             public void onClick(DialogInterface builder, int whichButton) {
+
                 saveAsImages(filenameView.getText().toString());
+
             }
         });
         builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
@@ -445,7 +447,12 @@ public class SightReader extends ActionBarActivity {
         }
         if (!options.scrollVert) {
             options.scrollVert = true;
-            if ((timeNum == 6 && timeDen == 4) || (timeNum == 12)) options.scrollVert=false; //this is too prevent the
+            if ((timeNum == 6 && timeDen == 4) || (timeNum == 12)) {
+                options.scrollVert=false; //this is too prevent the
+                Toast.makeText(this, "Saving sheet music not supported in 6/4 or 12/8 time signatures.",
+                            Toast.LENGTH_LONG).show();
+                return;
+            }
                                                                                              // difficulty of plotting vertical
                                                                                              // sheet music in 12/8 and 6/4
             createSheetMusic(options);
