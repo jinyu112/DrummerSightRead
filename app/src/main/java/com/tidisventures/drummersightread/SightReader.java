@@ -1155,7 +1155,7 @@ public class SightReader extends ActionBarActivity {
                     tempNoteProbs[2] = 0; //don't allow 8th notes for X/8 mode unless high enough difficulty
                 }
 
-                if (difficulty <= 3) {
+                if (difficulty <= 3 && practiceMode == 0) {
                     tempNoteProbs[0] = 0;
                     tempNoteProbs[2] = 0;
                 }
