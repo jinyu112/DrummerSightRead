@@ -354,7 +354,7 @@ public class Piano extends SurfaceView implements SurfaceHolder.Callback {
         if (canvas == null) {
             return;
         }
-        onDraw(canvas);
+        draw(canvas);
         holder.unlockCanvasAndPost(canvas);
     }
 
