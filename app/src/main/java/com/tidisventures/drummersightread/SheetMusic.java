@@ -1,5 +1,6 @@
 package com.tidisventures.drummersightread;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -1080,7 +1081,9 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     }
 
 
+
     /** Obtain the drawing canvas and call onDraw() */
+    @SuppressLint("WrongCall")
     public void callOnDraw() {
         if (!surfaceReady) {
             return;
@@ -1095,6 +1098,7 @@ public class SheetMusic extends SurfaceView implements SurfaceHolder.Callback {
     }
 
     /** Draw the SheetMusic. */
+
     @Override
     protected void onDraw(Canvas canvas) {
         if (bufferBitmap == null) {
