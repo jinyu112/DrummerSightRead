@@ -49,11 +49,16 @@ public class MainActivity extends ActionBarActivity {
         setContentView(R.layout.activity_main);
 
         Button button = (Button) findViewById(R.id.butt);
+        //button.setEnabled(false);
         AppRater.app_launched(this);
 
         ImageView imgView = (ImageView) findViewById(R.id.imgview);
         imgView.setImageResource(R.drawable.icon);
 
+
+    }
+
+    public void buttonClicked(View view) {
 
     }
 
