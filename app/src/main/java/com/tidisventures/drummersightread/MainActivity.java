@@ -1,8 +1,13 @@
 package com.tidisventures.drummersightread;
 
+import android.content.ComponentName;
+import android.content.Context;
 import android.content.Intent;
+import android.content.ServiceConnection;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v7.app.ActionBarActivity;
 import android.os.Bundle;
 import android.util.Log;
@@ -14,9 +19,11 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.Toast;
 
+import com.android.vending.billing.IInAppBillingService;
 import com.leff.midi.event.NoteOff;
 import com.leff.midi.event.NoteOn;
 import com.leff.midi.event.meta.Tempo;
+import com.tidisventures.inappbilling.util.IabHelper;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -42,11 +49,72 @@ public class MainActivity extends ActionBarActivity {
     private long midiCRC;      /* CRC of the midi bytes */
     private int lastStartJin;
 
+    private static InternalDataForAdBoolean checkBasicVersion;
+    private static final String ITEM_SKU = "com.tidisventures.drummerpremium"; //purchase ID in google play
+    //private static final String ITEM_SKU = "android.test.purchased";
+    IInAppBillingService mService;
+
+    // connecting to in app purchase in google play
+    ServiceConnection mServiceConn = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+
+        // if connected, check purchases. if purchases match the app, then set the internal basicVersion flag to false
+        // meaning this user has purchased the premium version
+        @Override
+        public void onServiceConnected(ComponentName name,
+                                       IBinder service) {
+            mService = IInAppBillingService.Stub.asInterface(service);
+            //Log.d("BJJ","on service connected");
+            Bundle ownedItems = null;
+            try {
+                if (mService != null) {
+                    ownedItems = mService.getPurchases(3, getPackageName(), "inapp", null);
+                    ArrayList ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
+                    if (ownedItems != null && ownedSkus != null) {
+                        int response = ownedItems.getInt("RESPONSE_CODE"); //if returns 0, request was successful
+                        int lenSkus = ownedSkus.size();
+                        //Log.d("BJJ", "size of ownedskus: " + ownedSkus.size());
+                        //Log.d("BJJ", "response: " + response);
+                        if (response == 0 && lenSkus > 0) {
+                            for (int i = 0; i < lenSkus; ++i) {
+                                String sku = (String) ownedSkus.get(i);
+                               // Log.d("BJJ", "PURACHSED ITEM " + i + " === " + sku);
+
+                                // if purchases from google play are found and matches the purchase made, set internal flag to false
+                                if (sku.equals(ITEM_SKU)) {
+                                    checkBasicVersion.upgradeVer_InternalStorage(); //set internal flag to false (meaning app is premium version)
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (RemoteException e) {
+                // TODO Auto-generated catch block
+                //Log.d("BJJ","failed to get purchases");
+                e.printStackTrace();
+            }
+        }
+    };
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        //in app purchase initialization
+        Intent serviceIntent =
+                new Intent("com.android.vending.billing.InAppBillingService.BIND");
+        serviceIntent.setPackage("com.android.vending");
+        bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
+
+        //load internal data for basicVersion boolean
+        checkBasicVersion = new InternalDataForAdBoolean(this);
+        checkBasicVersion.initBasicVersionData(); //this should do nothing if it's not the first time the app is started
 
         Button button = (Button) findViewById(R.id.butt);
         //button.setEnabled(false);
@@ -58,8 +126,13 @@ public class MainActivity extends ActionBarActivity {
 
     }
 
-    public void buttonClicked(View view) {
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
 
+        if (mService != null) {
+            unbindService(mServiceConn);
+        }
     }
 
     public void goToSightReader(View view) {

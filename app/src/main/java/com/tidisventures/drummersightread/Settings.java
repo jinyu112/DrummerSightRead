@@ -1,8 +1,13 @@
 package com.tidisventures.drummersightread;
 
+import android.content.ComponentName;
+import android.content.Context;
+import android.content.Intent;
+import android.content.ServiceConnection;
 import android.os.Bundle;
+import android.os.IBinder;
+import android.os.RemoteException;
 import android.support.v7.app.ActionBarActivity;
-import android.text.InputFilter;
 import android.util.Log;
 import android.view.Gravity;
 import android.view.View;
@@ -11,14 +16,21 @@ import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.CheckBox;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import com.android.vending.billing.IInAppBillingService;
+import com.tidisventures.inappbilling.util.IabHelper;
+import com.tidisventures.inappbilling.util.IabResult;
+import com.tidisventures.inappbilling.util.Purchase;
 
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.ObjectInputStream;
 import java.io.ObjectOutputStream;
+import java.util.ArrayList;
 
 
 public class Settings extends ActionBarActivity {
@@ -40,10 +52,165 @@ public class Settings extends ActionBarActivity {
     private static  Spinner spinnerPM; //practice mode spinner
     private static EditText evtempo;
 
+    //in app purchase variables
+    private static boolean basicVersion = true; //flag set from checking google play purchases
+    private static boolean basicVersion_FromInternalStorage = true; //flag set in internal data
+    private static boolean successfulSetupToIAP; //boolean indicating connection to iap using mHelper
+    IabHelper mHelper;
+    private static InternalDataForAdBoolean checkBasicVersion; //internal data storage object for basicVersion flag
+    private static final String ITEM_SKU = "com.tidisventures.drummerpremium"; //purchase ID in google play
+    //private static final String ITEM_SKU = "android.test.purchased";
+    IInAppBillingService mService;
+    private static Button upgradeButton;
+    private static LinearLayout upgradeLinearLayout;
+
+    ServiceConnection mServiceConn = new ServiceConnection() {
+        @Override
+        public void onServiceDisconnected(ComponentName name) {
+            mService = null;
+        }
+
+        // if connected, check purchases. if purchases match the app, then set the internal basicVersion flag to false
+        // meaning this user has purchased the premium version and basicVersion is also set to false. the input fields using
+        // setInputBehavior to set the proper limitations based on the version the user has
+        @Override
+        public void onServiceConnected(ComponentName name,
+                                       IBinder service) {
+            mService = IInAppBillingService.Stub.asInterface(service);
+           // Log.d("BJJ","on service connected");
+            Bundle ownedItems = null;
+            try {
+                if (mService != null) {
+                    ownedItems = mService.getPurchases(3, getPackageName(), "inapp", null);
+                    ArrayList ownedSkus = ownedItems.getStringArrayList("INAPP_PURCHASE_ITEM_LIST");
+                    if (ownedItems != null && ownedSkus != null) {
+                        int response = ownedItems.getInt("RESPONSE_CODE"); //if returns 0, request was successful
+                        int lenSkus = ownedSkus.size();
+                        //Log.d("BJJ", "size of ownedskus: " + ownedSkus.size());
+                        //Log.d("BJJ", "response: " + response);
+                        if (response == 0 && lenSkus > 0) {
+                            for (int i = 0; i < lenSkus; ++i) {
+                                String sku = (String) ownedSkus.get(i);
+                                //Log.d("BJJ", "PURACHSED ITEM " + i + " === " + sku);
+
+                                // if purchases from google play are found and matches the purchase made, ugrade version
+                                if (sku.equals(ITEM_SKU)) {
+                                    basicVersion = false;
+                                    checkBasicVersion.upgradeVer_InternalStorage(); //set internal flag to false (meaning app does not have ads)
+                                    basicVersion_FromInternalStorage = false;
+                                    setInputBehavior();
+                                    break;
+                                }
+                            }
+                        }
+                    }
+                }
+            } catch (RemoteException e) {
+                // TODO Auto-generated catch block
+                //Log.d("BJJ","failed to get purchases");
+                e.printStackTrace();
+            }
+        }
+    };
+
+    //listener for successful purchase or not (only called when upgrade button is touched)
+    IabHelper.OnIabPurchaseFinishedListener mPurchaseFinishedListener = new IabHelper.OnIabPurchaseFinishedListener() {
+        @Override
+        public void onIabPurchaseFinished(IabResult result, Purchase purchase) {
+            //Log.d("BJJ","result from purchase listener: " + result);
+            if (result.isFailure()) {
+                //Log.d("BJJ", "Purchase failed....");
+                return;
+            }
+            //if successful purchase set basicversion to false and remove upgrade button
+            else if (purchase.getSku().equals(ITEM_SKU)) {
+                //Log.d("BJJ", "Purchase successful!....");
+                basicVersion = false;
+                checkBasicVersion.upgradeVer_InternalStorage(); //set internal flag to false (meaning app is premimum version now)
+                basicVersion_FromInternalStorage = false;
+                setInputBehavior();
+            }
+        }
+    };
+
+    //Define what happens when upgrade button is pressed (linked in activity_settings.xml)
+    public void upgradeToPremium(View view) {
+        if (successfulSetupToIAP) {
+            mHelper.launchPurchaseFlow(this, ITEM_SKU, 10001, mPurchaseFinishedListener, "mypurchasetoken");
+
+//            //Uncomment following lines to consume
+//            if (mService==null) Log.d("BJJ","mservice is null");
+//            else Log.d("BJJ","mservice is not null");
+//
+//            String purchasetoken = "inapp:" + getPackageName() + ":" +ITEM_SKU;
+//            Log.d("BJJ",purchasetoken);
+//            try {
+//                int repsonse = mService.consumePurchase(3,getPackageName(),purchasetoken);
+//                if (repsonse==0) {
+//                    Log.d("BJJ","Consumption successful");
+//                }
+//                else {
+//                    Log.d("BJJ","Consumption unsuccessful");
+//                }
+//            } catch (RemoteException e) {
+//                e.printStackTrace();
+//            }
+
+
+        } else {
+            Toast.makeText(this, "You need to be connected to the internet and/or logged into Google Play to purchase.",
+                    Toast.LENGTH_LONG).show();
+        }
+    }
+
+    //onactivity result for in app purchase
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (!mHelper.handleActivityResult(requestCode,resultCode,data)) {
+            super.onActivityResult(requestCode,resultCode,data);
+        }
+        else {
+            //Log.d("BJJ", "onActivityResult handled by IABUtil.");
+        }
+    }
+
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_settings);
+
+        //in app purchase initialization
+        Intent serviceIntent =
+                new Intent("com.android.vending.billing.InAppBillingService.BIND");
+        serviceIntent.setPackage("com.android.vending");
+        bindService(serviceIntent, mServiceConn, Context.BIND_AUTO_CREATE);
+
+        mHelper = new IabHelper(this,getString(R.string.public_key));
+        mHelper.startSetup(new
+           IabHelper.OnIabSetupFinishedListener() {
+               @Override
+               public void onIabSetupFinished(IabResult result) {
+                   if (!result.isSuccess()) {
+                       //Log.d("BJJ","in app billing setup failed: " + result);
+                       successfulSetupToIAP = false;
+                   }
+                   else {
+                       //Log.d("BJJ","in app billing setup worked!!!!");
+                       successfulSetupToIAP = true;
+                   }
+               }
+           }
+        );
+
+        //upgrade button/layout
+        upgradeButton = (Button) findViewById(R.id.premium_button);
+        upgradeLinearLayout = (LinearLayout) findViewById(R.id.upgrade_linearlayout);
+
+        //load internal data for hasAds boolean
+        checkBasicVersion = new InternalDataForAdBoolean(this);
+
+
         cb_met = (CheckBox) findViewById(R.id.settings_cbmeton);
         cb_met.setChecked(true);
         cb_sync = (CheckBox) findViewById(R.id.settings_cbsync);
@@ -308,8 +475,94 @@ public class Settings extends ActionBarActivity {
         saveSettings();
     }
 
+    @Override
+    public void onStart() {
+        super.onStart();
+        //Log.d("BJJ","onstart method called");
+        basicVersion_FromInternalStorage = checkBasicVersion.checkVersionState();
+        setInputBehavior();
+
+    }
+
+    private void setInputBehavior() {
+        cb_sync.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                // if user tries to select syncopation, check whether or not basicversion and deal accordingly
+                if(cb_sync.isChecked() && (basicVersion_FromInternalStorage || basicVersion)){
+                    cb_sync.setChecked(false);
+                    Toast.makeText(Settings.this, "Unlock syncopation with the premium version. Upgrade now!",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        cb_trip.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                // TODO Auto-generated method stub
+                // if user tries to select triplets, check whether or not basicversion and deal accordingly
+                if(cb_trip.isChecked() && (basicVersion_FromInternalStorage || basicVersion)){
+                    cb_trip.setChecked(false);
+                    Toast.makeText(Settings.this, "Unlock triplets with the premium version. Upgrade now!",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+        });
+
+        // if user tries to a difficulty > 1, check whether or not basicversion and deal accordingly
+        spinnerDiff.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+
+            public void onItemSelected(AdapterView<?> arg0, View view, int position, long id) {
+                if (position > 1 && (basicVersion_FromInternalStorage || basicVersion)) {
+                    spinnerDiff.setSelection(1); //limit difficulty to 1 in basicversion
+                    Toast.makeText(Settings.this, "Unlock higher difficulties with the premium version. Upgrade now!",
+                            Toast.LENGTH_LONG).show();
+                }
+
+            }
+            public void onNothingSelected(AdapterView<?> arg0) { }
+        });
+
+
+        // if user tries to a practice mode other than "normal", check whether or not basicversion and deal accordingly
+        spinnerPM.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                if (position > 1 && (basicVersion_FromInternalStorage || basicVersion)) {
+                    spinnerPM.setSelection(0); //Only normal mode allowed
+                    Toast.makeText(Settings.this, "Unlock other practice modes with the premium version. Upgrade now!",
+                            Toast.LENGTH_LONG).show();
+                }
+            }
+            public void onNothingSelected(AdapterView<?> arg0) { }
+        });
+
+        //if not basic version, remove button
+        if (!basicVersion_FromInternalStorage || !basicVersion) {
+            if (upgradeButton != null) {
+                upgradeButton.setVisibility(View.GONE);
+            }
+            if (upgradeLinearLayout != null) {
+                upgradeLinearLayout.setVisibility(View.GONE);
+            }
+        }
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (mHelper != null) mHelper.dispose();
+        mHelper = null;
+
+        if (mService != null) {
+            unbindService(mServiceConn);
+        }
+    }
+
     //use internal storage to save the training time data
-    public void saveTimeDataInternal(String[] in) {
+    public void saveDataInternal(String[] in) {
         FileOutputStream outputStream;
 
         if (fileExistance(filename)) {
@@ -562,7 +815,7 @@ public class Settings extends ActionBarActivity {
         }
         settingsInput[7] = evtempo_str;
 
-        saveTimeDataInternal(settingsInput);
+        saveDataInternal(settingsInput);
     }
 }
 
